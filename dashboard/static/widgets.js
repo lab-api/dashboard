@@ -76,7 +76,7 @@
       append.appendChild(updateButton)
 
       var refreshButton = document.createElement('button')
-      setAttributes(updateButton, {
+      setAttributes(refreshButton, {
         "class": "btn btn-outline-secondary",
         "type": "button",
         "onclick": `refreshParameter('${name}', '${prefix}');`
