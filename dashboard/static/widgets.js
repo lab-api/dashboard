@@ -1,5 +1,4 @@
     function get (url, callback=null){
-      console.log(url, callback)
       var req = new XMLHttpRequest();
       if (callback != null)
       {
@@ -14,6 +13,12 @@
       req.send()
     }
 
+    function setAttributes(elem, obj) {
+        for (var prop in obj) {
+          elem.setAttribute(prop, obj[prop])
+        }
+    }
+
     function updateParameter(name, prefix) {
         text = document.getElementById(`'${name}'-value`).value;
         url = prefix.concat(name, '/set/', text)
@@ -21,7 +26,6 @@
     }
 
     function updateValue(name, val) {
-      console.log(val)
       document.getElementById(`'${name}'-value`).value = val
     }
 
@@ -33,13 +37,11 @@
     	};
     }
 
-    function refreshParameter(name, prefix) {
-        url = prefix.concat(name, '/get')
-        var callback = createPartial(updateValue, name)
-        get(url, callback=callback)
+    function refreshParameter(name, prefix, container) {
+        get(prefix.concat(name, '/get'), callback=createPartial(updateValue, name))
     }
 
-    function widget(name, prefix) {
+    function widget(name, value, prefix) {
       var new_widget = document.createElement('div')
       new_widget.setAttribute("class", "input-group mb-3")
 
@@ -52,11 +54,12 @@
       new_widget.appendChild(prepend)
 
       var text = document.createElement("input")
-      text.setAttribute("type", "text")
-      text.setAttribute("class", "form-control")
-      text.setAttribute("id", `'${name}'-value`)
-      text.value = ''
-
+      setAttributes(text, {
+        "type": "text",
+        "class": "form-control",
+        "id": `'${name}'-value`,
+        "value": value
+      })
 
       new_widget.appendChild(text)
 
@@ -64,21 +67,25 @@
       append.setAttribute("class", "input-group-append")
 
       var updateButton = document.createElement('button')
-      updateButton.setAttribute("class", "btn btn-outline-secondary")
-      updateButton.setAttribute("type", "button")
+      setAttributes(updateButton, {
+        "class": "btn btn-outline-secondary",
+        "type": "button",
+        "onclick": `updateParameter('${name}', '${prefix}');`
+      })
       updateButton.innerHTML = "Update"
-      updateButton.setAttribute("onclick", `updateParameter('${name}', '${prefix}');`)
       append.appendChild(updateButton)
 
       var refreshButton = document.createElement('button')
-      refreshButton.setAttribute("class", "btn btn-outline-secondary")
-      refreshButton.setAttribute("type", "button")
+      setAttributes(updateButton, {
+        "class": "btn btn-outline-secondary",
+        "type": "button",
+        "onclick": `refreshParameter('${name}', '${prefix}');`
+      })
       refreshButton.innerHTML = "Refresh"
-      refreshButton.setAttribute("onclick", `refreshParameter('${name}', '${prefix}');`)
       append.appendChild(refreshButton)
 
       new_widget.appendChild(append)
-      document.body.appendChild(new_widget)
+      container.appendChild(new_widget)
 
       text.addEventListener("keyup", function(event) {
               event.preventDefault();
@@ -89,9 +96,42 @@
 
     }
 
-  function createWidgets(arr, prefix) {
-    for (i=0; i<arr.length; i++) {
-      widget(arr[i], prefix=prefix)
-      refreshParameter(arr[i], prefix=prefix)
+
+  function createWidgets(parameters) {
+    for (var key in parameters) {
+      if (typeof(parameters[key]) == "number"){
+        widget(key, parameters[key], prefix='/parameters/', container=document.getElementById('parameters'))
+
+      }
+      else {
+        instrument_parameters = parameters[key]
+        prefix = `/instruments/${key}/parameters/`
+
+        header = document.createElement("button")
+
+        setAttributes(header, {
+          "class": "btn btn-primary",
+          "data-toggle": "collapse",
+          "data-target": `#${key}`,
+          "aria-controls": key,
+          "aria-expanded": "true"
+        })
+        header.innerHTML = key
+
+        div = document.createElement("div")
+        setAttributes(div, {
+          "class": "collapse show",
+          "id": key
+        })
+
+        document.getElementById("parameters").appendChild(header)
+        document.getElementById("parameters").appendChild(div)
+
+        console.log(header)
+        for (var inst_key in instrument_parameters) {
+          widget(inst_key, instrument_parameters[inst_key], prefix=prefix, container=div)
+        }
+
+      }
     }
   }

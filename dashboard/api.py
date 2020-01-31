@@ -53,7 +53,17 @@ class API:
 
         @app.route("/")
         def hello():
-            return "Parametric API"
+            d = {}
+            for p in self.search(Parameter, self.namespace, return_dict=True).values():
+                d[p.name] = p.get()
+
+            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
+                d[inst.name] = {}
+
+                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    d[inst.name][p.name] = p.get()
+
+            return render_template('parameters.html', parameters=d)
 
         @app.route('/shutdown', methods=['GET'])
         def shutdown():
@@ -70,20 +80,24 @@ class API:
         @app.route("/instruments/<instrument>/parameters", methods=['GET'])
         def list_instrument_parameters(instrument):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            return render_template('instruments.html', instrument=instrument, parameters=list(inst.parameters.keys()))
+            params = self.search(Parameter, inst.__dict__)
+            d = {}
+            for p in params:
+                d[p.name] = p()
+            d = {instrument: d}
+            return render_template('parameters.html', parameters=d)
 
 
         @app.route("/instruments/<instrument>/parameters/<parameter>/get", methods=['GET'])
         def get_instrument_parameter(instrument, parameter):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = inst.parameters[parameter]
-
+            param = self.search(Parameter, inst.__dict__, return_dict=True)[parameter]
             return str(param.get())
 
         @app.route("/instruments/<instrument>/parameters/<parameter>/set/<value>", methods=['GET'])
         def set_instrument_parameter(instrument, parameter, value):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = inst.parameters[parameter]
+            param = self.search(Parameter, inst.__dict__, return_dict=True)[parameter]
             param.set(float(value))
 
             return ''
@@ -92,14 +106,10 @@ class API:
         @app.route("/parameters", methods=['GET'])
         def list_parameters():
             params = self.search(Parameter, self.namespace)
-            names = [param.name for param in params]
-            print(names)
-            return render_template('parameters.html', names=names)
-
-        @app.route("/parameters/<parameter>", methods=['GET'])
-        def parameter_page(parameter):
-            # param = self.search(Parameter, self.namespace, return_dict=True)[parameter]
-            return render_template('parameters.html', names=[parameter])
+            d = {}
+            for p in params:
+                d[p.name] = p()
+            return render_template('parameters.html', parameters=d)
 
         @app.route("/parameters/<parameter>/set/<value>", methods=['GET'])
         def set_parameter(parameter, value):
