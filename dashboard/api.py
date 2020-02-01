@@ -2,7 +2,7 @@ from flask import Flask, request, render_template
 import requests
 import json
 import importlib, inspect
-from parametric import Parameter, Attribute, Instrument
+from parametric import Parameter, Attribute, Instrument, Switch
 import attr
 from threading import Thread
 
@@ -57,10 +57,16 @@ class API:
             for p in self.search(Parameter, self.namespace, return_dict=True).values():
                 d[p.name] = p.get()
 
+            for p in self.search(Switch, self.namespace, return_dict=True).values():
+                d[p.name] = p.get()
+
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
                 d[inst.name] = {}
 
                 for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    d[inst.name][p.name] = p.get()
+
+                for p in self.search(Switch, inst.__dict__, return_dict=True).values():
                     d[inst.name][p.name] = p.get()
 
             return render_template('parameters.html', parameters=d)
@@ -99,6 +105,20 @@ class API:
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
             param = self.search(Parameter, inst.__dict__, return_dict=True)[parameter]
             param.set(float(value))
+
+            return ''
+
+        @app.route("/instruments/<instrument>/switches/<parameter>/get", methods=['GET'])
+        def get_instrument_switch(instrument, parameter):
+            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
+            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
+            return str(param.get())
+
+        @app.route("/instruments/<instrument>/switches/<parameter>/set/<value>", methods=['GET'])
+        def set_instrument_switch(instrument, parameter, value):
+            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
+            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
+            param.set(value=='true')
 
             return ''
 
