@@ -22,10 +22,10 @@ function EnhancedTableHead(props) {
   const deselect = props.deselect
 
   function send() {
-    const state = props.state[instrument]['checkboxes']
+    const state = props.state[instrument]['checked']
     for (var i in props.rows) {
       const name = rows[i].name
-      const checked = state[name]
+      const checked = state.includes(name)
 
       if (checked){
         const textid = instrument.concat('-', name, '-text')
@@ -47,11 +47,11 @@ function EnhancedTableHead(props) {
   }
 
   function refresh() {
-    const state = props.state[instrument]['checkboxes']
+    const state = props.state[instrument]['checked']
     for (var i in rows) {
       const name = rows[i].name
       const textid = instrument.concat('-', name, '-text')
-      const checked = state[name]
+      const checked = state.includes(name)
       if (checked){
         get(prefix.concat(name, '/get'), function (val){
                     const element = document.getElementById(textid)
@@ -96,7 +96,6 @@ function EnhancedTableHead(props) {
 }
 
 function ParameterTable(props) {
-  var [count, setCount] = React.useState(0)
   const rows = props.rows;
   const instrument = props.instrument;
   const handleSelectAllClick = event => {
@@ -109,27 +108,18 @@ function ParameterTable(props) {
 
   const handleClick = (event, name) => {
     props.dispatch({'type': 'toggle', 'instrument': instrument, 'parameter': name})
-    const checked = props.state[instrument]['checkboxes'][name]
-    if (checked) {
-      setCount(count+1)
-    }
-    else {
-      setCount(count-1)
-    }
   };
 
   function selectAll() {
     for (var i in rows) {
-      props.dispatch({'type': 'check', 'instrument': instrument, 'parameter': rows[i].name})
+      props.dispatch({'type': 'check', 'instrument': instrument, 'parameter': [rows[i].name]})
     }
-    setCount(rows.length)
   }
 
   function deselectAll() {
     for (var i in rows) {
-      props.dispatch({'type': 'uncheck', 'instrument': instrument, 'parameter': rows[i].name})
+      props.dispatch({'type': 'uncheck', 'instrument': instrument, 'parameter': [rows[i].name]})
     }
-    setCount(0)
   }
 
   return (
@@ -143,8 +133,8 @@ function ParameterTable(props) {
             aria-label="enhanced table"
           >
             <EnhancedTableHead
-              indeterminate={count>0 && count<rows.length}
-              selected={count==rows.length}
+              indeterminate={props.state[instrument]['checked'].length>0 && props.state[instrument]['checked'].length<rows.length}
+              selected={props.state[instrument]['checked'].length==rows.length}
               rows={rows}
               deselect={deselectAll}
               instrument={instrument}
@@ -155,7 +145,7 @@ function ParameterTable(props) {
             <TableBody>
               {rows.map((row, index) => {
                 const state = props.state[instrument]
-                const isItemSelected = state['checkboxes'][row.name]
+                const isItemSelected = state['checked'].includes(row.name)
                 const state_value = state['parameters'][row.name]
                 return (
                   <TableRow
@@ -197,7 +187,7 @@ function ParameterTable(props) {
 }
 
 function mapStateToProps(state){
-  // pass entire store state 
+  // pass entire store state
   return { state }
 }
 export default connect(mapStateToProps)(ParameterTable)

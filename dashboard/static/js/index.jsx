@@ -13,7 +13,6 @@ function prepareInitialState(parameters) {
 
       if (typeof(pvalue)=='number') {
         store.dispatch({'type': 'addParameter', 'instrument': instrument, 'parameter': param, 'value': pvalue})
-        store.dispatch({'type': 'addCheckbox', 'instrument': instrument, 'parameter': param, 'value': false})
       }
       else {
         store.dispatch({'type': 'addSwitch', 'instrument': instrument, 'parameter': param, 'value': pvalue})
