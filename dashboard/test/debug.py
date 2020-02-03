@@ -9,7 +9,7 @@ class TAPro(Instrument):
     current = Attribute('current', 126)
     voltage = Attribute('voltage', 74.6)
     emission = Toggle('emission', False)
-
+    temperature = Attribute('temperature', 30)
     name = attr.ib(default='TA Pro')
 
 @attr.s
@@ -23,6 +23,5 @@ class Coils(Instrument):
 inst = TAPro(name='laser')
 inst2 = Coils()
 
-pmt = Parameter("PMT voltage", 0.7)
 api = API(globals(), debug=True, port=8000)
 api.serve()
