@@ -6,6 +6,8 @@ from parametric import Parameter, Attribute, Instrument, Switch
 import attr
 from threading import Thread
 
+from optimistic.algorithms import *
+
 class API:
     def __init__(self, namespace, addr='127.0.0.1', port=54031, debug=False):
         self.addr = addr
@@ -153,5 +155,65 @@ class API:
         def get_parameter(parameter):
             param = self.search(Parameter, self.namespace, return_dict=True)[parameter]
             return str(param.get())
+
+
+        ''' Optimistic endpoints '''
+        from importlib import import_module
+        from inspect import isclass
+
+        @app.route('/optimistic/algorithms')
+        def list_algorithms():
+            module = import_module('optimistic.algorithms')
+            names = []
+            for a in dir(module):
+                if '__' not in a:
+                    inst = getattr(module, a)
+                    if isclass(inst):
+                        names.append(a)
+            names.remove('Algorithm')
+
+            return json.dumps(names)
+
+        @app.route('/optimistic/algorithms/<algorithm>/parameters')
+        def list_algorithm_parameters(algorithm):
+            module = import_module('optimistic.algorithms')
+            inst = getattr(module, algorithm)()
+            parameters = self.search(Parameter, inst.__dict__)
+
+            d = {}
+            for p in parameters:
+                d[p.name] = p.value
+            return json.dumps(d)
+
+        @app.route('/optimistic/submit', methods=['POST'])
+        def submit_run():
+            ''' Takes a dictionary of the following field structure (example)
+                shown for the GradientDescent algorithm):
+                submission = {'algorithm': 'GradientDescent',
+                              'settings': {'learning_rate': 1e-2},
+                              'parameters': {'x': {'bounds': (-1, 1)}},
+                              'objective': 'z'}
+                where x and z are Parameters.
+
+                Returns a dictionary with fields listing measurements
+             '''
+            submission = request.json
+            module = import_module('optimistic.algorithms')
+            algo_class = getattr(module, submission['algorithm'])
+
+            objective = self.search(Parameter, self.namespace, name=submission['objective'])
+            algo = algo_class(objective, **submission['settings'])
+            for p in submission['parameters']:
+                parameter = self.search(Parameter, self.namespace, name=p )
+                bounds = submission['parameters'][p]['bounds']
+                algo.add_parameter(parameter, bounds=bounds)
+
+            algo.run()
+
+            data = {}
+            for col in algo.dataset.columns:
+                data[col] = list(algo.dataset['x'].values)
+
+            return json.dumps(data)
 
         app.run(host=self.addr, port=self.port, debug=self.debug, threaded=False)
