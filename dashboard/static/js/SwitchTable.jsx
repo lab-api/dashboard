@@ -10,13 +10,11 @@ import IconButton from "@material-ui/core/IconButton";
 import CachedIcon from "@material-ui/icons/Cached";
 import SendIcon from '@material-ui/icons/Send';
 import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import get from './utilities.js'
 import Input from '@material-ui/core/Input';
-
+import {connect} from 'react-redux'
 
 function SwitchRow(props){
-  const id = props.inst_name.concat('-', props.name, '-value')
 
   return (
       <TableRow key={props.name}>
@@ -25,8 +23,7 @@ function SwitchRow(props){
         </TableCell>
         <TableCell align="right">
         <Switch
-          id = {id}
-          checked={props.checked}        // use state and handler from parent
+          checked={props.checked}
           onChange={props.handleChange}
           name={props.name}
           inputProps={{ 'aria-label': 'primary checkbox' }}
@@ -36,28 +33,27 @@ function SwitchRow(props){
     )
   }
 
-export default function SwitchTable(props){
+function SwitchTable(props){
   const prefix = '/instruments/'.concat(props.instrument, '/switches/')
-  const initialState = {}
-  for (var i in props.switches){
-    initialState[props.switches[i].name] = props.switches[i].value
+  const state = props.state[props.instrument]['switches']
+
+  const rows = []
+  for (var param in state) {
+    rows.push({name: param, value: state[param]})
   }
-  const [state, setState] = useState(initialState)
 
   function handleChange(event) {
     const name = event.target.name
-    setState({...state, [name]: event.target.checked})
+    props.dispatch({'type': 'switch', 'instrument': props.instrument, 'parameter': name, 'value': event.target.checked})
     const url = prefix.concat(name, '/set/', event.target.checked)
     get(url)
   }
 
   function refresh() {
-    for (var i in props.switches) {
-      const name = props.switches[i].name
+    for (var name in state) {
       const url = prefix.concat(name, '/get')
-
       function callback(val) {
-        setState({...state, [name]: val=='True'})
+        props.dispatch({'type': 'switch', 'instrument': props.instrument, 'parameter': name, 'value': val=='True'})
       }
       get(url, callback)
     }
@@ -77,10 +73,16 @@ export default function SwitchTable(props){
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.switches.map(row => (<SwitchRow name={row.name} inst_name={props.instrument} checked={state[row.name]} key={row.name} handleChange={handleChange} />
+          {rows.map(row => (<SwitchRow name={row.name} checked={state[row.name]} key={row.name} handleChange={handleChange} />
             ))}
         </TableBody>
       </Table>
     </TableContainer>
   );
 }
+
+function mapStateToProps(state){
+  // pass entire store state
+  return { state }
+}
+export default connect(mapStateToProps)(SwitchTable)

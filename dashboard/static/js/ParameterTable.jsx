@@ -15,57 +15,6 @@ import get from './utilities.js'
 import { connect } from 'react-redux'
 
 function EnhancedTableHead(props) {
-  const rows = props.rows
-  const instrument = props.instrument
-  const onSelectAllClick = props.onSelectAllClick
-  const prefix = '/instruments/'.concat(instrument, '/parameters/')
-  const deselect = props.deselect
-
-  function send() {
-    const state = props.state[instrument]['checked']
-    for (var i in props.rows) {
-      const name = rows[i].name
-      const checked = state.includes(name)
-
-      if (checked){
-        const textid = instrument.concat('-', name, '-text')
-        const element = document.getElementById(textid)
-        let text = element.value
-        if (text == '') {
-          text = element.placeholder
-        }
-        props.dispatch({'type': 'update',
-                              'instrument': instrument,
-                              'parameter': name,
-                              'value': parseFloat(text)})
-        const url = prefix.concat(name, '/set/', text)
-        element.value = ''
-        get(url)
-      }
-    }
-    refresh()
-  }
-
-  function refresh() {
-    const state = props.state[instrument]['checked']
-    for (var i in rows) {
-      const name = rows[i].name
-      const textid = instrument.concat('-', name, '-text')
-      const checked = state.includes(name)
-      if (checked){
-        get(prefix.concat(name, '/get'), function (val){
-                    const element = document.getElementById(textid)
-                    element.value = ''
-                    props.dispatch({'type': 'update',
-                                          'instrument': instrument,
-                                          'parameter': name,
-                                          'value': parseFloat(val)})
-                  })
-      }
-    }
-    deselect()
-  }
-
   return (
     <TableHead>
       <TableRow>
@@ -73,8 +22,7 @@ function EnhancedTableHead(props) {
           <Checkbox
             indeterminate={props.indeterminate}
             checked={props.selected}
-            onChange={onSelectAllClick}
-            inputProps={{ "aria-label": "select all desserts" }}
+            onChange={props.onSelectAllClick}
           />
         </TableCell>
         <TableCell align="left" padding="none">
@@ -82,10 +30,10 @@ function EnhancedTableHead(props) {
         </TableCell>
         <TableCell align="right" padding="default">
           <div className="row">
-          <IconButton aria-label="update" onClick={send}>
+          <IconButton aria-label="update" onClick={props.send}>
             <SendIcon />
           </IconButton>
-          <IconButton aria-label="refresh" onClick={refresh}>
+          <IconButton aria-label="refresh" onClick={props.refresh}>
             <CachedIcon />
           </IconButton>
           </div>
@@ -96,7 +44,12 @@ function EnhancedTableHead(props) {
 }
 
 function ParameterTable(props) {
-  const rows = props.rows;
+  const prefix = '/instruments/'.concat(props.instrument, '/parameters/')
+  const rows = []
+  const values = props.state[props.instrument]['parameters']
+  for (var param in values) {
+    rows.push({name: param, value: values[param]})
+  }
   const instrument = props.instrument;
   const handleSelectAllClick = event => {
     if (event.target.checked) {
@@ -107,21 +60,54 @@ function ParameterTable(props) {
   };
 
   const handleClick = (event, name) => {
-    props.dispatch({'type': 'toggle', 'instrument': instrument, 'parameter': name})
+    props.dispatch({'type': 'toggle', 'instrument': instrument, 'name': name})
   };
 
   function selectAll() {
-    for (var i in rows) {
-      props.dispatch({'type': 'check', 'instrument': instrument, 'parameter': [rows[i].name]})
-    }
+    props.dispatch({'type': 'check', 'instrument': instrument, 'names': Object.keys(values)})
   }
 
   function deselectAll() {
-    for (var i in rows) {
-      props.dispatch({'type': 'uncheck', 'instrument': instrument, 'parameter': [rows[i].name]})
-    }
+    props.dispatch({'type': 'uncheck', 'instrument': instrument, 'names': Object.keys(values)})
   }
 
+  function send() {
+    const state = props.state[instrument]['checked']
+    for (var i in state) {
+      const name = state[i]
+      const textid = instrument.concat('-', name, '-text')
+      const element = document.getElementById(textid)
+      let text = element.value
+      if (text == '') {
+        text = element.placeholder
+      }
+      props.dispatch({'type': 'update',
+                      'instrument': instrument,
+                      'parameter': name,
+                      'value': parseFloat(text)})
+      const url = prefix.concat(name, '/set/', text)
+      element.value = ''
+      get(url)
+    }
+    refresh()
+  }
+
+  function refresh() {
+    const state = props.state[props.instrument]['checked']
+    for (var i in state) {
+      const name = state[i]
+      const textid = props.instrument.concat('-', name, '-text')
+      get(prefix.concat(name, '/get'), function (val){
+                  const element = document.getElementById(textid)
+                  element.value = ''
+                  props.dispatch({'type': 'update',
+                                        'instrument': props.instrument,
+                                        'parameter': name,
+                                        'value': parseFloat(val)})}
+            )
+      }
+    deselectAll()
+  }
   return (
     <div>
       <Paper>
@@ -135,18 +121,13 @@ function ParameterTable(props) {
             <EnhancedTableHead
               indeterminate={props.state[instrument]['checked'].length>0 && props.state[instrument]['checked'].length<rows.length}
               selected={props.state[instrument]['checked'].length==rows.length}
-              rows={rows}
-              deselect={deselectAll}
-              instrument={instrument}
+              send={send}
+              refresh={refresh}
               onSelectAllClick={handleSelectAllClick}
-              state={props.state}
-              dispatch={props.dispatch}
             />
             <TableBody>
               {rows.map((row, index) => {
-                const state = props.state[instrument]
-                const isItemSelected = state['checked'].includes(row.name)
-                const state_value = state['parameters'][row.name]
+                const isItemSelected = props.state[instrument]['checked'].includes(row.name)
                 return (
                   <TableRow
                     hover
@@ -172,7 +153,7 @@ function ParameterTable(props) {
                       {row.name}
                     </TableCell>
                     <TableCell align="right">
-                      <Input placeholder={state_value.toString()}
+                      <Input placeholder={props.state[instrument]['parameters'][row.name].toString()}
                              id={instrument.concat('-', row.name, '-text')} />
                     </TableCell>
                   </TableRow>
