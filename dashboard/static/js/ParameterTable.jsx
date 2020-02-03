@@ -6,112 +6,198 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import CachedIcon from "@material-ui/icons/Cached";
-import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import get from './utilities.js'
+import SendIcon from "@material-ui/icons/Send";
 import Input from '@material-ui/core/Input';
-import SendIcon from '@material-ui/icons/Send';
+import get from './utilities.js'
+import { connect } from 'react-redux'
 
-function ParameterRow(name, value, inst_name) {
-  value = value.toString()
-  var id = inst_name.concat('-', name, '-value')
-  var prefix = '/instruments/'.concat(inst_name, '/parameters/')
-  function refresh(){
-    get(prefix.concat(name, '/get'), update)
-  }
-  function update(val){
-      var element = document.getElementById(id)
-      element.value = ''
-      element.placeholder = val
-    }
-  function set() {
-        var element = document.getElementById(id)
-        var text = element.value
+function EnhancedTableHead(props) {
+  const rows = props.rows
+  const instrument = props.instrument
+  const onSelectAllClick = props.onSelectAllClick
+  const prefix = '/instruments/'.concat(instrument, '/parameters/')
+  const deselect = props.deselect
+
+  function send() {
+    const state = props.state[instrument]['checkboxes']
+    for (var i in props.rows) {
+      const name = rows[i].name
+      const checked = state[name]
+
+      if (checked){
+        const textid = instrument.concat('-', name, '-text')
+        const element = document.getElementById(textid)
+        let text = element.value
         if (text == '') {
           text = element.placeholder
         }
-        var url = prefix.concat(name, '/set/', text)
+        props.dispatch({'type': 'update',
+                              'instrument': instrument,
+                              'parameter': name,
+                              'value': parseFloat(text)})
+        const url = prefix.concat(name, '/set/', text)
         element.value = ''
-        element.placeholder = text
         get(url)
+      }
     }
-  return (
-    <TableRow key={name}>
-      <TableCell component="th" scope="row">
-        {name}
-      </TableCell>
-      <TableCell align="right">
-      <Input placeholder={value} id={id} />
-      </TableCell>
-      <TableCell align="right">
-        <IconButton aria-label="update" onClick={set}>
-          <SendIcon />
-        </IconButton>
-        <IconButton aria-label="refresh" onClick={refresh}>
-          <CachedIcon />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  );
-}
+    refresh()
+  }
 
-function SwitchRow(name, value, inst_name) {
-  var id = inst_name.concat('-', name, '-value')
-  var prefix = '/instruments/'.concat(inst_name, '/switches/')
-
-  function set() {
-        var bool = document.getElementById(id).checked;
-        var url = prefix.concat(name, '/set/', bool)
-        get(url)
+  function refresh() {
+    const state = props.state[instrument]['checkboxes']
+    for (var i in rows) {
+      const name = rows[i].name
+      const textid = instrument.concat('-', name, '-text')
+      const checked = state[name]
+      if (checked){
+        get(prefix.concat(name, '/get'), function (val){
+                    const element = document.getElementById(textid)
+                    element.value = ''
+                    props.dispatch({'type': 'update',
+                                          'instrument': instrument,
+                                          'parameter': name,
+                                          'value': parseFloat(val)})
+                  })
+      }
     }
-  return (
-    <TableRow key={name}>
-      <TableCell component="th" scope="row">
-        {name}
-      </TableCell>
-      <TableCell align="right">
-      <FormControlLabel control={<Switch onChange={set} id={id}/>} />
+    deselect()
+  }
 
-      </TableCell>
-    </TableRow>
+  return (
+    <TableHead>
+      <TableRow>
+        <TableCell padding="checkbox">
+          <Checkbox
+            indeterminate={props.indeterminate}
+            checked={props.selected}
+            onChange={onSelectAllClick}
+            inputProps={{ "aria-label": "select all desserts" }}
+          />
+        </TableCell>
+        <TableCell align="left" padding="none">
+          Parameters{" "}
+        </TableCell>
+        <TableCell align="right" padding="default">
+          <div className="row">
+          <IconButton aria-label="update" onClick={send}>
+            <SendIcon />
+          </IconButton>
+          <IconButton aria-label="refresh" onClick={refresh}>
+            <CachedIcon />
+          </IconButton>
+          </div>
+        </TableCell>
+      </TableRow>
+    </TableHead>
   );
 }
 
-export function ParameterTable(parameters, key) {
+function ParameterTable(props) {
+  var [count, setCount] = React.useState(0)
+  const rows = props.rows;
+  const instrument = props.instrument;
+  const handleSelectAllClick = event => {
+    if (event.target.checked) {
+      selectAll()
+      return;
+    }
+    deselectAll()
+  };
+
+  const handleClick = (event, name) => {
+    props.dispatch({'type': 'toggle', 'instrument': instrument, 'parameter': name})
+    const checked = props.state[instrument]['checkboxes'][name]
+    if (checked) {
+      setCount(count+1)
+    }
+    else {
+      setCount(count-1)
+    }
+  };
+
+  function selectAll() {
+    for (var i in rows) {
+      props.dispatch({'type': 'check', 'instrument': instrument, 'parameter': rows[i].name})
+    }
+    setCount(rows.length)
+  }
+
+  function deselectAll() {
+    for (var i in rows) {
+      props.dispatch({'type': 'uncheck', 'instrument': instrument, 'parameter': rows[i].name})
+    }
+    setCount(0)
+  }
+
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label="simple table" size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Parameters</TableCell>
-            <TableCell align="right"></TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {parameters.map(row => (ParameterRow(row.name, row.value, key)))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <div>
+      <Paper>
+        <TableContainer>
+          <Table
+            id="fancy-table"
+            aria-labelledby="tableTitle"
+            size={"small"}
+            aria-label="enhanced table"
+          >
+            <EnhancedTableHead
+              indeterminate={count>0 && count<rows.length}
+              selected={count==rows.length}
+              rows={rows}
+              deselect={deselectAll}
+              instrument={instrument}
+              onSelectAllClick={handleSelectAllClick}
+              state={props.state}
+              dispatch={props.dispatch}
+            />
+            <TableBody>
+              {rows.map((row, index) => {
+                const state = props.state[instrument]
+                const isItemSelected = state['checkboxes'][row.name]
+                const state_value = state['parameters'][row.name]
+                return (
+                  <TableRow
+                    hover
+                    onClick={event => handleClick(event, row.name)}
+                    role="checkbox"
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={row.name}
+                    id={instrument.concat('-', row.name, '-row')}
+                    selected={isItemSelected}
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={isItemSelected}
+                        id={instrument.concat('-', row.name, '-check')}
+                      />
+                    </TableCell>
+                    <TableCell
+                      component="th"
+                      scope="row"
+                      padding="none"
+                    >
+                      {row.name}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Input placeholder={state_value.toString()}
+                             id={instrument.concat('-', row.name, '-text')} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </div>
   );
 }
 
-export function SwitchTable(switches, key) {
-  return (
-    <TableContainer component={Paper}>
-      <Table aria-label="simple table" size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Switches</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {switches.map(row => (SwitchRow(row.name, row.value, key)))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+function mapStateToProps(state){
+  // pass entire store state 
+  return { state }
 }
+export default connect(mapStateToProps)(ParameterTable)

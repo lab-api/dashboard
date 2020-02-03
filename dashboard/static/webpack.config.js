@@ -1,10 +1,10 @@
 const webpack = require('webpack');
 const config = {
-    entry:  __dirname + '/js/widgets.jsx',
+    entry:  __dirname + '/js/index.jsx',
     output: {
         path: __dirname + '/dist',
         filename: 'bundle.js',
-        library: 'widgets',
+        library: 'index',
         libraryTarget: 'var'
     },
     resolve: {

@@ -9,9 +9,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 </head>
 
-<body onload='widgets.createWidgets({{parameters|tojson}});'>
-  <div id='top-bar'></div>
-  <div id="parameters" class="card"></div>
+<body onload='index.createGUI({{parameters|tojson}});'>
+  <div id='root'></div>
 </body>
 
 </html>
