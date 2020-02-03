@@ -23,6 +23,13 @@ class API:
             pass
         return text
 
+    def post(self, endpoint, payload):
+        ''' POST a json-compatible payload to an endpoint '''
+        if endpoint[0] == '/':
+            endpoint = endpoint[1:]
+        response = requests.post(f'http://{self.addr}:{self.port}/{endpoint}', json=payload)
+        return json.loads(response.text)
+
     def shutdown_server(self):
         func = request.environ.get('werkzeug.server.shutdown')
         if func is None:
