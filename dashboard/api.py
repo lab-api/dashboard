@@ -37,13 +37,17 @@ class API:
         func()
 
     @staticmethod
-    def search(type_, namespace, return_dict=False):
+    def search(type_, namespace, return_dict=False, name=None):
         ''' Returns all instances of a passed type in the dictionary. If no namespace is passed, search in globals(). '''
         instances = []
         for x in namespace.keys():
             if isinstance(namespace[x], type_):
                 instances.append(namespace[x])
 
+        if name is not None:
+            for i in instances:
+                if i.name == name:
+                    return i
         if return_dict:
             d = {}
             for x in instances:
