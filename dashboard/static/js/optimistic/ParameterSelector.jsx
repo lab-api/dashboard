@@ -11,11 +11,20 @@ import { connect } from 'react-redux'
 
 function ParameterSelector(props) {
   const rows = []
+
   for (var instrument in props.state) {
       for (var i in props.state[instrument]['checked']) {
-        rows.push({name: props.state[instrument]['checked'][i], instrument: instrument})
+        const name = props.state[instrument]['checked'][i]
+        rows.push({name: name, instrument: instrument})
       }
   }
+
+
+  function handleChange(instrument, name, index) {
+    const value = parseFloat(event.target.value)
+    props.setBounds({...props.bounds, [instrument]: {...props.bounds[instrument], [name]: {...props.bounds[instrument][name], [index]: value}} })
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label="simple table">
@@ -33,8 +42,8 @@ function ParameterSelector(props) {
             <TableRow key={row.name}>
               <TableCell align="right">{row.instrument}</TableCell>
               <TableCell align="right">{row.name}</TableCell>
-              <TableCell align="right"><Input placeholder='0'/></TableCell>
-              <TableCell align="right"><Input placeholder='0'/></TableCell>
+              <TableCell align="right"><Input onChange={(event)=>handleChange(row.instrument, row.name, 'min', event)} placeholder={props.bounds[row.instrument][row.name]['min'].toString()}/></TableCell>
+              <TableCell align="right"><Input onChange={(event)=>handleChange(row.instrument, row.name, 'max', event)} placeholder={props.bounds[row.instrument][row.name]['max'].toString()}/></TableCell>
             </TableRow>
           ))}
         </TableBody>

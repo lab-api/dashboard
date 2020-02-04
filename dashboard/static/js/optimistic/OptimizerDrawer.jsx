@@ -6,12 +6,23 @@ import Submitter from "./Submitter.jsx"
 import JSONTable from './JSONTable.jsx'
 import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
+import { connect } from 'react-redux'
 
-export default function OptimizerDrawer() {
+function OptimizerDrawer(props) {
   const [optimizerOptions, setOptimizerOptions] = React.useState({})
   const [algorithm, setAlgorithm] = React.useState('')
   const [measurement, setMeasurement] = React.useState('')
   const [instrument, setInstrument] = React.useState('')
+
+  const initialBounds = {}
+  for (var inst in props.state){
+    initialBounds[inst] = {}
+    for (var parameter in props.state[inst]['parameters']){
+      initialBounds[inst][parameter] = {'min': 0, 'max': 0}
+    }
+  }
+  const [bounds, setBounds] = React.useState(initialBounds)
+
   return (
     <div>
       <Typography align='center' variant="h4">
@@ -23,7 +34,7 @@ export default function OptimizerDrawer() {
 
       <Divider/>
       <Typography align='center'> <b>2. Select independent variables</b> </Typography>
-      <ParameterSelector/>
+      <ParameterSelector bounds={bounds} setBounds={setBounds}/>
 
       <Divider/>
       <Typography align='center'> <b>3. Select optimizer</b> </Typography>
@@ -31,7 +42,13 @@ export default function OptimizerDrawer() {
       <JSONTable options={optimizerOptions}/>
 
       <Divider/>
-      <Submitter measurement={measurement} algorithm={algorithm} options={optimizerOptions} instrument={instrument}/>
+      <Submitter measurement={measurement} algorithm={algorithm} options={optimizerOptions} instrument={instrument} bounds={bounds}/>
     </div>
   )
 }
+
+function mapStateToProps(state){
+  // pass entire store state
+  return { state }
+}
+export default connect(mapStateToProps)(OptimizerDrawer)
