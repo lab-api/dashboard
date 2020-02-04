@@ -8,6 +8,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import red from '@material-ui/core/colors/red';
 import Drawer from "@material-ui/core/Drawer";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import OptimizerParameterTable from "./OptimizerParameterTable.jsx"
 
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
@@ -41,11 +42,16 @@ export default function ButtonAppBar() {
         </Toolbar>
       </AppBar>
       </ThemeProvider>
-      <Drawer variant="persistent" anchor="left" open={open}>
+      <Drawer variant="persistent" anchor="right" open={open}>
       <div>
         <IconButton onClick={handleDrawerClose}>
           <ChevronLeftIcon />
         </IconButton>
+        <Typography align='center'> <b>1. Select independent variables</b> </Typography>
+        <OptimizerParameterTable/>
+        <Typography align='center'> <b>2. Select dependent variable</b> </Typography>
+        <Typography align='center'> <b>3. Select optimizer</b> </Typography>
+
       </div>
       </Drawer>
     </div>
