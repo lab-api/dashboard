@@ -26,7 +26,7 @@ function EnhancedTableHead(props) {
           />
         </TableCell>
         <TableCell align="left" padding="none">
-          Parameters{" "}
+          Knobs{" "}
         </TableCell>
         <TableCell align="right" padding="default">
           <div className="row">

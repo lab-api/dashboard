@@ -28,9 +28,13 @@ export default function reducer(state={}, action) {
       ...state, [action.instrument]: {...state[action.instrument], 'switches' : {...state[action.instrument]['switches'], [action.parameter]: action.value}
     }}
 
-    // initial state prep 
+    case 'measure': return {
+      ...state, [action.instrument]: {...state[action.instrument], 'measurements' : {...state[action.instrument]['measurements'], [action.parameter]: action.value}
+    }}
+
+    // initial state prep
     case 'addInstrument': return {
-      ...state, [action.instrument]: {'parameters': {}, 'switches': {}, 'checked': []}
+      ...state, [action.instrument]: {'parameters': {}, 'switches': {}, 'checked': [], 'measurements': {}}
     }
     case 'addParameter':
     return {
@@ -39,6 +43,10 @@ export default function reducer(state={}, action) {
     case 'addSwitch':
     return {
       ...state, [action.instrument]: {...state[action.instrument], 'switches': {...state[action.instrument]['switches'], [action.parameter]: action.value}}
+    }
+    case 'addMeasurement':
+    return {
+      ...state, [action.instrument]: {...state[action.instrument], 'measurements': {...state[action.instrument]['measurements'], [action.parameter]: action.value}}
     }
   }
 }

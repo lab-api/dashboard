@@ -8,14 +8,18 @@ function prepareInitialState(parameters) {
   for (var instrument in parameters) {
     store.dispatch({'type': 'addInstrument', 'instrument': instrument})
     const instrument_params = parameters[instrument]
-    for (var param in instrument_params) {
-      const pvalue = instrument_params[param]
-
-      if (typeof(pvalue)=='number') {
-        store.dispatch({'type': 'addParameter', 'instrument': instrument, 'parameter': param, 'value': pvalue})
-      }
-      else {
-        store.dispatch({'type': 'addSwitch', 'instrument': instrument, 'parameter': param, 'value': pvalue})
+    for (var kind in instrument_params) {
+      for (var name in instrument_params[kind]){
+        const value = instrument_params[kind][name]
+        if (kind=='switch'){
+          store.dispatch({'type': 'addSwitch', 'instrument': instrument, 'parameter': name, 'value': value})
+        }
+        else if (kind=='knob'){
+          store.dispatch({'type': 'addParameter', 'instrument': instrument, 'parameter': name, 'value': value})
+        }
+        else if (kind=='measurement'){
+          store.dispatch({'type': 'addMeasurement', 'instrument': instrument, 'parameter': name, 'value': value})
+        }
       }
     }
   }
