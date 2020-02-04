@@ -7,6 +7,10 @@ import JSONTable from './JSONTable.jsx'
 import Divider from '@material-ui/core/Divider';
 import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux'
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 
 function OptimizerDrawer(props) {
   const [optimizerOptions, setOptimizerOptions] = React.useState({})
@@ -24,25 +28,61 @@ function OptimizerDrawer(props) {
   }
   const [bounds, setBounds] = React.useState(initialBounds)
 
+  const [expanded, setExpanded] = React.useState(false);
+  const handleExpansion = panel => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
+
   return (
     <div>
       <Typography align='center' variant="h4">
-        Measurements
+        Optimization
       </Typography>
       <Divider/>
-      <Typography align='center'> <b>1. Select dependent variable</b> </Typography>
-      <MeasurementSelector measurement={measurement} setMeasurement={setMeasurement} instrument={instrument} setInstrument={setInstrument}/>
+      <ExpansionPanel expanded={expanded === 'panel1'} onChange={handleExpansion('panel1')}>
+        <ExpansionPanelSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1bh-content"
+          id="panel1bh-header"
+        >
+          <Typography> <b>Select dependent variable</b></Typography>
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <MeasurementSelector measurement={measurement} setMeasurement={setMeasurement} instrument={instrument} setInstrument={setInstrument}/>
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
 
-      <Divider/>
-      <Typography align='center'> <b>2. Select independent variables</b> </Typography>
-      <ParameterSelector bounds={bounds} setBounds={setBounds}/>
+      <ExpansionPanel expanded={expanded === 'panel2'} onChange={handleExpansion('panel2')}>
+        <ExpansionPanelSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel2bh-content"
+          id="panel2bh-header"
+        >
+          <Typography> <b>Select independent variables</b></Typography>
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <ParameterSelector bounds={bounds} setBounds={setBounds}/>
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
 
-      <Divider/>
-      <Typography align='center'> <b>3. Select optimizer</b> </Typography>
-      <OptimizerSelector algorithm={algorithm} setAlgorithm={setAlgorithm} update={setOptimizerOptions}/>
-      <JSONTable options={optimizerOptions}/>
+      <ExpansionPanel expanded={expanded === 'panel3'} onChange={handleExpansion('panel3')}>
+        <ExpansionPanelSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel3bh-content"
+          id="panel3bh-header"
+        >
+          <Typography> <b> Select optimizer </b></Typography>
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <div className='col'>
+          <div className="row">
+            <OptimizerSelector algorithm={algorithm} setAlgorithm={setAlgorithm} update={setOptimizerOptions}/>
+          </div>
+          <JSONTable options={optimizerOptions}/>
+          </div>
+        </ExpansionPanelDetails>
+      </ExpansionPanel>
 
-      <Divider/>
       <Submitter measurement={measurement} algorithm={algorithm} options={optimizerOptions} instrument={instrument} bounds={bounds}/>
     </div>
   )

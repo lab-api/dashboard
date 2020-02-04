@@ -31,7 +31,7 @@ function Submitter(props) {
   }
   return (
     <div>
-      <Button onClick={submit}>Submit</Button>
+      <Button onClick={submit} variant="contained">Submit</Button>
     </div>
   )
 

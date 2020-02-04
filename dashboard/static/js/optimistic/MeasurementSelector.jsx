@@ -3,6 +3,10 @@ import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import FormControl from '@material-ui/core/FormControl'
+import FormHelperText from '@material-ui/core/FormHelperText'
+import Container from '@material-ui/core/Container'
 
 function MeasurementSelector(props) {
   const [measurementsList, setMeasurementsList] = React.useState([])
@@ -40,23 +44,36 @@ function MeasurementSelector(props) {
     props.setMeasurement(event.target.value)
   }
 
+
   return (
-    <Grid container justify='center'>
-      <Select value={props.instrument} autoWidth={true} variant="outlined" onChange={handleInstrumentChange}>
-        {instruments.map((row, index) => {
-          return (
-          <MenuItem key={row} value={row}>{row}</MenuItem>
-        )
-        })}
-      </Select>
-      <Select value={props.measurement} autoWidth={true} variant="outlined" onChange={handleChange}>
-      {measurementsList.map((row, index) => {
-        return (
-        <MenuItem key={row} value={row}>{row}</MenuItem>
-      )
-      })}
-      </Select>
-    </Grid>
+    <Container>
+      <div className="row">
+        <div className="col">
+          <FormControl>
+          <Select value={props.instrument} autoWidth={true} variant="outlined" onChange={handleInstrumentChange}>
+            {instruments.map((row, index) => {
+              return (
+              <MenuItem key={row} value={row}>{row}</MenuItem>
+            )
+            })}
+          </Select>
+          <FormHelperText>Instrument</FormHelperText>
+          </FormControl>
+          </div>
+          <div className="col">
+            <FormControl>
+              <Select value={props.measurement} autoWidth={true} variant="outlined" onChange={handleChange}>
+              {measurementsList.map((row, index) => {
+                return (
+                <MenuItem key={row} value={row}>{row}</MenuItem>
+              )
+              })}
+              </Select>
+              <FormHelperText>Parameter</FormHelperText>
+            </FormControl>
+          </div>
+        </div>
+    </Container>
   );
 }
 

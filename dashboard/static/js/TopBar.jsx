@@ -4,7 +4,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
+import SpeedIcon from '@material-ui/icons/Speed';
 import red from '@material-ui/core/colors/red';
 import Drawer from "@material-ui/core/Drawer";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
@@ -39,7 +39,9 @@ const useStyles = makeStyles(theme => ({
   content: {
     flexGrow: 1,
     padding: theme.spacing(3),
-  }
+  },
+  appBarSpacer: theme.mixins.toolbar
+
 }));
 
 
@@ -69,15 +71,17 @@ export default function ButtonAppBar() {
       <ThemeProvider theme={theme}>
       <AppBar position="fixed" className={classes.appBar} color="primary">
         <Toolbar>
-          <IconButton edge="start" aria-label="open-drawer" onClick={toggleDrawer} color="inherit" aria-label="menu">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6">
+
+          <Typography variant="h6" style={{ flex: 1 }}>
             LabAPI
           </Typography>
+          <IconButton edge="start" aria-label="open-drawer" onClick={toggleDrawer} color="inherit" aria-label="menu">
+            <SpeedIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       </ThemeProvider>
+      <div className={classes.appBarSpacer} />
       <Drawer variant="persistent" anchor="right" open={open} className={classes.drawer}
         classes={{
           paper: classes.drawerPaper,
