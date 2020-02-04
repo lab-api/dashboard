@@ -14,11 +14,12 @@ function OptimizerDrawer(props) {
   const [measurement, setMeasurement] = React.useState('')
   const [instrument, setInstrument] = React.useState('')
 
+  // use parameter bounds as a first guess for optimizer bounds
   const initialBounds = {}
   for (var inst in props.state){
     initialBounds[inst] = {}
     for (var parameter in props.state[inst]['parameters']){
-      initialBounds[inst][parameter] = {'min': 0, 'max': 0}
+      initialBounds[inst][parameter] = props.state[inst]['bounds'][parameter]
     }
   }
   const [bounds, setBounds] = React.useState(initialBounds)

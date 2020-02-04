@@ -76,7 +76,7 @@ class API:
                     if p.kind == 'measurement':
                         d[inst.name][p.kind][p.name] = ''
                     else:
-                        d[inst.name][p.kind][p.name] = p.get()
+                        d[inst.name][p.kind][p.name] = {'value': p.get(), 'min': p.bounds[0], 'max': p.bounds[1]}
 
 
             return render_template('parameters.html', parameters=d)

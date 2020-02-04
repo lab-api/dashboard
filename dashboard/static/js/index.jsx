@@ -10,12 +10,14 @@ function prepareInitialState(parameters) {
     const instrument_params = parameters[instrument]
     for (var kind in instrument_params) {
       for (var name in instrument_params[kind]){
-        const value = instrument_params[kind][name]
+        const value = instrument_params[kind][name]['value']
+        const bounds = {'min': instrument_params[kind][name]['min'], 'max': instrument_params[kind][name]['max']}
         if (kind=='switch'){
           store.dispatch({'type': 'addSwitch', 'instrument': instrument, 'parameter': name, 'value': value})
         }
         else if (kind=='knob'){
           store.dispatch({'type': 'addParameter', 'instrument': instrument, 'parameter': name, 'value': value})
+          store.dispatch({'type': 'addParameterBounds', 'instrument': instrument, 'parameter': name, 'value': bounds})
         }
         else if (kind=='measurement'){
           store.dispatch({'type': 'addMeasurement', 'instrument': instrument, 'parameter': name, 'value': value})

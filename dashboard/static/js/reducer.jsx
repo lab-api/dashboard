@@ -34,11 +34,15 @@ export default function reducer(state={}, action) {
 
     // initial state prep
     case 'addInstrument': return {
-      ...state, [action.instrument]: {'parameters': {}, 'switches': {}, 'checked': [], 'measurements': {}}
+      ...state, [action.instrument]: {'parameters': {}, 'bounds': {}, 'switches': {}, 'checked': [], 'measurements': {}}
     }
     case 'addParameter':
     return {
       ...state, [action.instrument]: {...state[action.instrument], 'parameters': {...state[action.instrument]['parameters'], [action.parameter]: action.value}}
+    }
+    case 'addParameterBounds':
+    return {
+      ...state, [action.instrument]: {...state[action.instrument], 'bounds': {...state[action.instrument]['bounds'], [action.parameter]: action.value}}
     }
     case 'addSwitch':
     return {
