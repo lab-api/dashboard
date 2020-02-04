@@ -9,7 +9,7 @@ import Paper from '@material-ui/core/Paper';
 import Input from '@material-ui/core/Input';
 import { connect } from 'react-redux'
 
-function SimpleTable(props) {
+function ParameterSelector(props) {
   const rows = []
   for (var instrument in props.state) {
       for (var i in props.state[instrument]['checked']) {
@@ -47,4 +47,4 @@ function mapStateToProps(state){
   // pass entire store state
   return { state }
 }
-export default connect(mapStateToProps)(SimpleTable)
+export default connect(mapStateToProps)(ParameterSelector)

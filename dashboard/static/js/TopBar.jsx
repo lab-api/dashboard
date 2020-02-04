@@ -8,8 +8,9 @@ import MenuIcon from '@material-ui/icons/Menu';
 import red from '@material-ui/core/colors/red';
 import Drawer from "@material-ui/core/Drawer";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import OptimizerParameterTable from "./OptimizerParameterTable.jsx"
-
+import { makeStyles } from '@material-ui/core/styles';
+import Divider from '@material-ui/core/Divider';
+import OptimizerDrawer from './optimistic/OptimizerDrawer.jsx'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
 const theme = createMuiTheme({
@@ -18,8 +19,43 @@ const theme = createMuiTheme({
   },
 });
 
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    display: 'flex',
+  },
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+  },
+  drawer: {
+    width: 400,
+    flexShrink: 0,
+  },
+  drawerPaper: {
+    width: 400,
+    paddingTop: 64 // equal to AppBar height
+
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  }
+}));
+
+
+
 export default function ButtonAppBar() {
+  const classes = useStyles();
+
   const [open, setOpen] = useState(false)
+  function toggleDrawer() {
+    if (open) {
+      setOpen(false)
+    }
+    else {
+      setOpen(true)
+    }
+  }
   function handleDrawerOpen() {
   setOpen(true)
   }
@@ -31,9 +67,9 @@ export default function ButtonAppBar() {
   return (
     <div>
       <ThemeProvider theme={theme}>
-      <AppBar position="static" color="primary">
+      <AppBar position="fixed" className={classes.appBar} color="primary">
         <Toolbar>
-          <IconButton edge="start" aria-label="open-drawer" onClick={handleDrawerOpen} color="inherit" aria-label="menu">
+          <IconButton edge="start" aria-label="open-drawer" onClick={toggleDrawer} color="inherit" aria-label="menu">
             <MenuIcon />
           </IconButton>
           <Typography variant="h6">
@@ -42,17 +78,11 @@ export default function ButtonAppBar() {
         </Toolbar>
       </AppBar>
       </ThemeProvider>
-      <Drawer variant="persistent" anchor="right" open={open}>
-      <div>
-        <IconButton onClick={handleDrawerClose}>
-          <ChevronLeftIcon />
-        </IconButton>
-        <Typography align='center'> <b>1. Select independent variables</b> </Typography>
-        <OptimizerParameterTable/>
-        <Typography align='center'> <b>2. Select dependent variable</b> </Typography>
-        <Typography align='center'> <b>3. Select optimizer</b> </Typography>
-
-      </div>
+      <Drawer variant="persistent" anchor="right" open={open} className={classes.drawer}
+        classes={{
+          paper: classes.drawerPaper,
+        }}>
+        <OptimizerDrawer />
       </Drawer>
     </div>
   );
