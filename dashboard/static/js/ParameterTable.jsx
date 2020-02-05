@@ -13,6 +13,7 @@ import SendIcon from "@material-ui/icons/Send";
 import Input from '@material-ui/core/Input';
 import get from './utilities.js'
 import { connect } from 'react-redux'
+import * as actions from './reducers/actions.js'
 
 function EnhancedTableHead(props) {
   return (
@@ -45,12 +46,8 @@ function EnhancedTableHead(props) {
 
 function ParameterTable(props) {
   const prefix = '/instruments/'.concat(props.instrument, '/parameters/')
-  const rows = []
-  const values = props.state[props.instrument]['parameters']
-  for (var param in values) {
-    rows.push({name: param, value: values[param]})
-  }
-  const instrument = props.instrument;
+  const names = Object.keys(props.parameters)
+
   const handleSelectAllClick = event => {
     if (event.target.checked) {
       selectAll()
@@ -60,31 +57,27 @@ function ParameterTable(props) {
   };
 
   const handleClick = (event, name) => {
-    props.dispatch({'type': 'toggle', 'instrument': instrument, 'name': name})
+    props.dispatch(actions.toggle(props.instrument, name))
   };
 
   function selectAll() {
-    props.dispatch({'type': 'check', 'instrument': instrument, 'names': Object.keys(values)})
+    props.dispatch(actions.check(props.instrument, names))
   }
 
   function deselectAll() {
-    props.dispatch({'type': 'uncheck', 'instrument': instrument, 'names': Object.keys(values)})
+    props.dispatch(actions.uncheck(props.instrument, names))
   }
 
   function send() {
-    const state = props.state[instrument]['checked']
-    for (var i in state) {
-      const name = state[i]
-      const textid = instrument.concat('-', name, '-text')
+    for (var i in props.checked) {
+      const name = props.checked[i]
+      const textid = props.instrument.concat('-', name, '-text')
       const element = document.getElementById(textid)
       let text = element.value
       if (text == '') {
         text = element.placeholder
       }
-      props.dispatch({'type': 'update',
-                      'instrument': instrument,
-                      'parameter': name,
-                      'value': parseFloat(text)})
+      props.dispatch(actions.updateParameter(props.instrument, name, parseFloat(text)))
       const url = prefix.concat(name, '/set/', text)
       element.value = ''
       get(url)
@@ -93,17 +86,13 @@ function ParameterTable(props) {
   }
 
   function refresh() {
-    const state = props.state[props.instrument]['checked']
-    for (var i in state) {
-      const name = state[i]
+    for (var i in props.checked) {
+      const name = props.checked[i]
       const textid = props.instrument.concat('-', name, '-text')
       get(prefix.concat(name, '/get'), function (val){
                   const element = document.getElementById(textid)
                   element.value = ''
-                  props.dispatch({'type': 'update',
-                                        'instrument': props.instrument,
-                                        'parameter': name,
-                                        'value': parseFloat(val)})}
+                  props.dispatch(actions.updateParameter(props.instrument, name, parseFloat(val)))}
             )
       }
     deselectAll()
@@ -119,30 +108,30 @@ function ParameterTable(props) {
             aria-label="enhanced table"
           >
             <EnhancedTableHead
-              indeterminate={props.state[instrument]['checked'].length>0 && props.state[instrument]['checked'].length<rows.length}
-              selected={props.state[instrument]['checked'].length==rows.length}
+              indeterminate={props.checked.length>0 && props.checked.length<names.length}
+              selected={props.checked.length==names.length}
               send={send}
               refresh={refresh}
               onSelectAllClick={handleSelectAllClick}
             />
             <TableBody>
-              {rows.map((row, index) => {
-                const isItemSelected = props.state[instrument]['checked'].includes(row.name)
+              {names.map((name, index) => {
+                const isItemSelected = props.checked.includes(name)
                 return (
                   <TableRow
                     hover
-                    onClick={event => handleClick(event, row.name)}
+                    onClick={event => handleClick(event, name)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.name}
-                    id={instrument.concat('-', row.name, '-row')}
+                    key={name}
+                    id={props.instrument.concat('-', name, '-row')}
                     selected={isItemSelected}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         checked={isItemSelected}
-                        id={instrument.concat('-', row.name, '-check')}
+                        id={props.instrument.concat('-', name, '-check')}
                       />
                     </TableCell>
                     <TableCell
@@ -150,11 +139,11 @@ function ParameterTable(props) {
                       scope="row"
                       padding="none"
                     >
-                      {row.name}
+                      {name}
                     </TableCell>
                     <TableCell align="right">
-                      <Input placeholder={props.state[instrument]['parameters'][row.name].toString()}
-                             id={instrument.concat('-', row.name, '-text')} />
+                      <Input placeholder={props.parameters[name].toString()}
+                             id={props.instrument.concat('-', name, '-text')} />
                     </TableCell>
                   </TableRow>
                 );
@@ -167,8 +156,7 @@ function ParameterTable(props) {
   );
 }
 
-function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+function mapStateToProps(state, ownProps){
+  return {parameters: state['parameters'][ownProps.instrument], checked: state['checked'][ownProps.instrument]}
 }
 export default connect(mapStateToProps)(ParameterTable)

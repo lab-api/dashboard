@@ -13,6 +13,7 @@ import Switch from '@material-ui/core/Switch';
 import get from './utilities.js'
 import Input from '@material-ui/core/Input';
 import {connect} from 'react-redux'
+import * as actions from './reducers/actions.js'
 
 function SwitchRow(props){
 
@@ -35,25 +36,19 @@ function SwitchRow(props){
 
 function SwitchTable(props){
   const prefix = '/instruments/'.concat(props.instrument, '/switches/')
-  const state = props.state[props.instrument]['switches']
-
-  const rows = []
-  for (var param in state) {
-    rows.push({name: param, value: state[param]})
-  }
 
   function handleChange(event) {
     const name = event.target.name
-    props.dispatch({'type': 'switch', 'instrument': props.instrument, 'parameter': name, 'value': event.target.checked})
+    props.dispatch(actions.updateSwitch(props.instrument, name, event.target.checked))
     const url = prefix.concat(name, '/set/', event.target.checked)
     get(url)
   }
 
   function refresh() {
-    for (var name in state) {
+    for (var name in props.switches) {
       const url = prefix.concat(name, '/get')
       function callback(val) {
-        props.dispatch({'type': 'switch', 'instrument': props.instrument, 'parameter': name, 'value': val=='True'})
+        props.dispatch(actions.updateSwitch(props.instrument, name, val=='True'))
       }
       get(url, callback)
     }
@@ -73,7 +68,10 @@ function SwitchTable(props){
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (<SwitchRow name={row.name} checked={state[row.name]} key={row.name} handleChange={handleChange} />
+          {Object.keys(props.switches).map(row => (<SwitchRow name={row}
+                                                              checked={props.switches[row]}
+                                                              key={row}
+                                                              handleChange={handleChange} />
             ))}
         </TableBody>
       </Table>
@@ -81,8 +79,7 @@ function SwitchTable(props){
   );
 }
 
-function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+function mapStateToProps(state, ownProps){
+  return {switches: state['switches'][ownProps.instrument] || []}
 }
 export default connect(mapStateToProps)(SwitchTable)

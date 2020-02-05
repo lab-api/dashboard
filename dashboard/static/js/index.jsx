@@ -3,24 +3,27 @@ import ReactDOM from 'react-dom';
 import store from './store.jsx'
 import { Provider, connect } from 'react-redux'
 import App from "./App.jsx"
+import * as actions from "./reducers/actions.js"
 
 function prepareInitialState(parameters) {
   for (var instrument in parameters) {
-    store.dispatch({'type': 'addInstrument', 'instrument': instrument})
+    store.dispatch(actions.addInstrument(instrument))
+    store.dispatch(actions.addCheckboxes(instrument))
+
     const instrument_params = parameters[instrument]
     for (var kind in instrument_params) {
       for (var name in instrument_params[kind]){
         const value = instrument_params[kind][name]['value']
-        const bounds = {'min': instrument_params[kind][name]['min'], 'max': instrument_params[kind][name]['max']}
         if (kind=='switch'){
-          store.dispatch({'type': 'addSwitch', 'instrument': instrument, 'parameter': name, 'value': value})
+          store.dispatch(actions.updateSwitch(instrument, name, value))
         }
         else if (kind=='knob'){
-          store.dispatch({'type': 'addParameter', 'instrument': instrument, 'parameter': name, 'value': value})
-          store.dispatch({'type': 'addParameterBounds', 'instrument': instrument, 'parameter': name, 'value': bounds})
+          store.dispatch(actions.updateParameter(instrument, name, value))
+          const bounds = {'min': instrument_params[kind][name]['min'], 'max': instrument_params[kind][name]['max']}
+          store.dispatch(actions.updateBounds(instrument, name, bounds))
         }
         else if (kind=='measurement'){
-          store.dispatch({'type': 'addMeasurement', 'instrument': instrument, 'parameter': name, 'value': value})
+          store.dispatch(actions.addMeasurement(instrument, name))
         }
       }
     }

@@ -10,20 +10,10 @@ import Container from '@material-ui/core/Container'
 
 function MeasurementSelector(props) {
   const [measurementsList, setMeasurementsList] = React.useState([])
-  const instruments = []
-  for (var instrument in props.state) {
-    if (Object.keys(props.state[instrument]['measurements']).length > 0) {
-      instruments.push(instrument)
-    }
-  }
-
+  const instruments = Object.keys(props.measurements)
   function getMeasurementsList(instrument) {
-    const rows = []
-    for (var name in props.state[instrument]['measurements']) {
-      rows.push(name)
-    }
-    setMeasurementsList(rows)
-    props.setMeasurement(rows[0])
+    setMeasurementsList(props.measurements[instrument])
+    props.setMeasurement(props.measurements[instrument][0])
   }
 
   function setInitialState() {
@@ -40,6 +30,7 @@ function MeasurementSelector(props) {
     props.setInstrument(event.target.value)
     getMeasurementsList(event.target.value)
   }
+  
   function handleChange(event) {
     props.setMeasurement(event.target.value)
   }
@@ -77,8 +68,7 @@ function MeasurementSelector(props) {
   );
 }
 
-function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+function mapStateToProps(state, ownProps){
+  return {measurements: state['measurements']}
 }
 export default connect(mapStateToProps)(MeasurementSelector)

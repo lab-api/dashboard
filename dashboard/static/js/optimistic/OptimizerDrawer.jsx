@@ -17,16 +17,7 @@ function OptimizerDrawer(props) {
   const [algorithm, setAlgorithm] = React.useState('')
   const [measurement, setMeasurement] = React.useState('')
   const [instrument, setInstrument] = React.useState('')
-
-  // use parameter bounds as a first guess for optimizer bounds
-  const initialBounds = {}
-  for (var inst in props.state){
-    initialBounds[inst] = {}
-    for (var parameter in props.state[inst]['parameters']){
-      initialBounds[inst][parameter] = props.state[inst]['bounds'][parameter]
-    }
-  }
-  const [bounds, setBounds] = React.useState(initialBounds)
+  const [bounds, setBounds] = React.useState(props.bounds)
 
   const [expanded, setExpanded] = React.useState(false);
   const handleExpansion = panel => (event, isExpanded) => {
@@ -89,7 +80,6 @@ function OptimizerDrawer(props) {
 }
 
 function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+  return {bounds: state['bounds']}
 }
 export default connect(mapStateToProps)(OptimizerDrawer)

@@ -5,12 +5,8 @@ import { connect } from 'react-redux'
 function Submitter(props) {
 
   function submit() {
-    const checked = {}
-    for (var instrument in props.state){
-      if (props.state[instrument]['checked'].length > 0) {
-        checked[instrument] = props.state[instrument]['checked']
-      }
-    }
+    const checked = props.checked
+
 
     const bounds = {}
     for (var instrument in checked){
@@ -38,7 +34,6 @@ function Submitter(props) {
 }
 
 function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+  return {checked: state['checked']}
 }
 export default connect(mapStateToProps)(Submitter)

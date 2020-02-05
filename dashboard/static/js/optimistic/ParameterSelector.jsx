@@ -12,13 +12,12 @@ import { connect } from 'react-redux'
 function ParameterSelector(props) {
   const rows = []
 
-  for (var instrument in props.state) {
-      for (var i in props.state[instrument]['checked']) {
-        const name = props.state[instrument]['checked'][i]
+  for (var instrument in props.checked) {
+      for (var i in props.checked[instrument]) {
+        const name = props.checked[instrument][i]
         rows.push({name: name, instrument: instrument})
       }
   }
-
 
   function handleChange(instrument, name, index) {
     const value = parseFloat(event.target.value)
@@ -53,7 +52,6 @@ function ParameterSelector(props) {
 }
 
 function mapStateToProps(state){
-  // pass entire store state
-  return { state }
+  return {checked: state['checked'] }
 }
 export default connect(mapStateToProps)(ParameterSelector)
