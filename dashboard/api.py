@@ -188,28 +188,34 @@ class API:
                 shown for the GradientDescent algorithm):
                 submission = {'algorithm': 'GradientDescent',
                               'settings': {'learning_rate': 1e-2},
-                              'parameters': {'x': {'bounds': (-1, 1)}},
+                              'bounds': {'instrument': {'x': {'min': 0, 'max': 1}}},
+                              'parameters': {'instrument': ['x']},
+                              'instrument': 'instrument'
                               'objective': 'z'}
                 where x and z are Parameters.
 
                 Returns a dictionary with fields listing measurements
              '''
             submission = request.json
+            print(submission)
             module = import_module('optimistic.algorithms')
             algo_class = getattr(module, submission['algorithm'])
-
-            objective = self.search(Parameter, self.namespace, name=submission['objective'])
+            instrument = self.search(Instrument, self.namespace, name=submission['instrument'])
+            objective = self.search(Parameter, instrument.__dict__, name=submission['objective'])
             algo = algo_class(objective, **submission['settings'])
-            for p in submission['parameters']:
-                parameter = self.search(Parameter, self.namespace, name=p )
-                bounds = submission['parameters'][p]['bounds']
-                algo.add_parameter(parameter, bounds=bounds)
+            for instrument in submission['parameters']:
+                instance = self.search(Instrument, self.namespace, name=instrument)
+                for p in submission['parameters'][instrument]:
+                    parameter = self.search(Parameter, instance.__dict__, name=p)
+                    bounds = submission['bounds'][instrument][p]
+                    bounds = (bounds['min'], bounds['max'])
+                    algo.add_parameter(parameter, bounds=bounds)
 
             algo.run()
-
+            print(algo.X, algo.y)
             data = {}
             for col in algo.dataset.columns:
-                data[col] = list(algo.dataset['x'].values)
+                data[col] = list(algo.dataset[col].values)
 
             return json.dumps(data)
 

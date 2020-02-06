@@ -4,15 +4,16 @@ import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import { setIn } from 'immutable'
-import get from '../utilities.js'
+import { get, post } from '../utilities.js'
 
 function Submitter(props) {
-  const checked = props.checked
+  React.useEffect(() => {props.dispatch(actions.optimization.put('parameters', props.checked))})  // keep optimization parameters linked to checked
+
   var complete = true
 
   var parameters_complete = false
-  for (var instrument in checked){
-    if (checked[instrument].length > 0) {
+  for (var instrument in props.checked){
+    if (props.checked[instrument].length > 0) {
       parameters_complete = true
     }
   }
@@ -22,10 +23,21 @@ function Submitter(props) {
   complete &= (props.optimization.objective != "")
   complete &= (props.optimization.instrument != "")
 
+  const updateParameters = () => dispatch => {
+    dispatch(actions.optimization.put('parameters', props.checked));
+    return Promise.resolve();
+  };
+
   function submit() {
-    props.dispatch(actions.optimization.put('parameters', props.checked))
-    console.log(props.optimization)
+      console.log(props.optimization)
+      post('/optimistic/submit', props.optimization, displayResult)
+    }
+
+
+  function displayResult(data) {
+    console.log(data)
   }
+
   return (
     <Container>
       <Button onClick={submit}
