@@ -17,10 +17,54 @@ import ParameterRows from './ParameterRows.jsx'
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import InstrumentRow from './InstrumentRow.jsx'
-
+import get from '../utilities.js'
 
 function DataTable(props) {
   const [expanded, setExpanded] = React.useState([])
+
+  function deselectAll() {
+    for (var instrument in props.parameters) {
+      props.dispatch(actions.uncheck(instrument, Object.keys(props.parameters[instrument])))
+    }
+  }
+  function send() {
+    for (var instrument in props.checked) {
+      for (var i in props.checked[instrument]) {
+        const instrument_name = instrument
+        const name = props.checked[instrument][i]
+
+        const text = props.inputs[instrument][name]
+        if (text == null) {
+          text = props.parameters[instrument][name]
+        }
+
+        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/set/', text)
+        props.dispatch(actions.updateParameter(instrument_name, name, parseFloat(text)))
+        props.dispatch(actions.updateInput(instrument_name, name, ''))
+
+        get(url)
+      }
+    }
+    refresh()
+  }
+
+  function updateParameter(instrument, name, value) {
+    props.dispatch(actions.updateParameter(instrument, name, parseFloat(value)))
+    props.dispatch(actions.updateInput(instrument, name, ''))
+  }
+
+  function refresh() {
+    for (var instrument in props.checked) {
+      for (var i in props.checked[instrument]) {
+        const instrument_name = instrument
+        const name = props.checked[instrument][i]
+        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/get')
+        get(url, (value) => updateParameter(instrument_name, name, value))
+      }
+    }
+    deselectAll()
+  }
+
   function toggleExpandAll() {
     if (expanded.length < props.instruments.length) {
       setExpanded(props.instruments)
@@ -55,13 +99,13 @@ function DataTable(props) {
               <IconButton aria-label="update" onClick={toggleExpandAll}>
                 {expanded.length<props.instruments.length? (<ExpandMoreIcon/>): <ExpandLessIcon/>}
               </IconButton>
-              <IconButton aria-label="update">
+              <IconButton aria-label="update" onClick={send}>
                 <SendIcon />
               </IconButton>
-              <IconButton aria-label="refresh">
+              <IconButton aria-label="refresh" onClick={refresh}>
                 <CachedIcon />
               </IconButton>
-              <IconButton aria-label="refresh">
+              <IconButton aria-label="more-vert" >
                 <MoreVertIcon />
               </IconButton>
               </div>
@@ -82,6 +126,6 @@ function DataTable(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {instruments: state['instruments'], parameters: state['parameters'], checked: state['checked']}
+  return {instruments: state['instruments'], parameters: state['parameters'], checked: state['checked'], inputs: state['inputs']}
 }
 export default connect(mapStateToProps)(DataTable)

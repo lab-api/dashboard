@@ -3,6 +3,10 @@ export function updateParameter(instrument, parameter, value) {
   return {type: 'updateParameter', instrument: instrument, parameter: parameter, value: value}
 }
 
+export function updateInput(instrument, parameter, value) {
+  return {type: 'updateInput', instrument: instrument, parameter: parameter, value: value}
+}
+
 export function updateBounds(instrument, parameter, value) {
   return {type: 'updateBounds', instrument: instrument, parameter: parameter, value: value}
 }

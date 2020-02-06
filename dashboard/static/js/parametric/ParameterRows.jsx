@@ -12,6 +12,9 @@ function ParameterRows(props) {
     props.dispatch(actions.toggle(props.instrument, name))
   };
 
+  function handleUserInput(instrument, parameter, value) {
+    props.dispatch(actions.updateInput(instrument, parameter, value))
+  }
   return (
     <React.Fragment>
       {Object.keys(props.parameters).map((parameter, i) => (
@@ -22,7 +25,9 @@ function ParameterRows(props) {
         <TableCell>{parameter}</TableCell>
         <TableCell>
           <Input placeholder={props.parameters[parameter].toString()}
-                 id={props.instrument.concat('-', parameter, '-text')} />
+                 value={props.inputs[parameter]}
+                 id={props.instrument.concat('-', parameter, '-text')}
+                 onChange={(event)=>handleUserInput(props.instrument, parameter, event.target.value)}/>
         </TableCell>
         <TableCell/>
       </TableRow>
@@ -32,7 +37,10 @@ function ParameterRows(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {parameters: state['parameters'][ownProps['instrument']], checked: state['checked'][ownProps['instrument']]}
+  return {parameters: state['parameters'][ownProps['instrument']],
+          checked: state['checked'][ownProps['instrument']],
+          inputs: state['inputs'][ownProps['instrument']]
+        }
 }
 
 export default connect(mapStateToProps)(ParameterRows)

@@ -19,6 +19,8 @@ function prepareInitialState(parameters) {
         }
         else if (kind=='knob'){
           store.dispatch(actions.updateParameter(instrument, name, value))
+          store.dispatch(actions.updateInput(instrument, name, ''))
+
           const bounds = {'min': instrument_params[kind][name]['min'], 'max': instrument_params[kind][name]['max']}
           store.dispatch(actions.updateBounds(instrument, name, bounds))
         }
