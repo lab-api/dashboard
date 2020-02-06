@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
@@ -10,7 +9,9 @@ import Container from '@material-ui/core/Container'
 
 function MeasurementSelector(props) {
   const [measurementsList, setMeasurementsList] = React.useState([])
+
   const instruments = Object.keys(props.measurements)
+
   function getMeasurementsList(instrument) {
     setMeasurementsList(props.measurements[instrument])
     props.setMeasurement(props.measurements[instrument][0])
@@ -30,7 +31,7 @@ function MeasurementSelector(props) {
     props.setInstrument(event.target.value)
     getMeasurementsList(event.target.value)
   }
-  
+
   function handleChange(event) {
     props.setMeasurement(event.target.value)
   }

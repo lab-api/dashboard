@@ -49,11 +49,14 @@ function InstrumentRow(props) {
       <TableCell padding="checkbox">
         <Checkbox indeterminate={props.checked.length>0 && props.checked.length<names.length}
                   checked={props.checked.length==names.length}
-                  onChange={handleSelectAllClick}/>
+                  onChange={handleSelectAllClick}
+                  color="primary"/>
       </TableCell>
       <TableCell align="left" padding="none"><b>{props.instrument}</b></TableCell>
       <TableCell/>
       <TableCell>
+      </TableCell>
+      <TableCell align='right' padding='default'>
         <IconButton aria-label="show more" edge='start' size='small' onClick={()=>handleExpandClick(props.instrument)}>
           {props.expanded.includes(props.instrument)? (<ExpandLessIcon />): <ExpandMoreIcon />}
         </IconButton>

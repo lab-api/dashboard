@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import get from '../utilities.js'
 
 function OptimizerSelector(props) {
-  const [options, setOptions] = React.useState([''])
+  const [options, setOptions] = React.useState([])
 
   function callback(list) {
     list = JSON.parse(list)

@@ -6,6 +6,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconButton from '@material-ui/core/IconButton';
@@ -82,33 +83,37 @@ function DataTable(props) {
          <col style={{width:'10%'}}/>
          <col style={{width:'20%'}}/>
          <col style={{width:'40%'}}/>
-         <col style={{width:'30%'}}/>
+         <col style={{width:'25%'}}/>
+         <col style={{width:'5%'}}/>
+
          </colgroup>
         <TableHead>
           <TableRow>
             <TableCell padding="checkbox">
             </TableCell>
             <TableCell align="left" padding="none">
-              Knob
+              <Typography color="primary">Knob</Typography>
             </TableCell>
             <TableCell align="left" padding="none">
-              Value
+              <Typography color="primary">Value</Typography>
             </TableCell>
             <TableCell align="right" padding="default">
               <div className="row">
-              <IconButton aria-label="update" onClick={toggleExpandAll}>
-                {expanded.length<props.instruments.length? (<ExpandMoreIcon/>): <ExpandLessIcon/>}
-              </IconButton>
-              <IconButton aria-label="update" onClick={send}>
+              <IconButton aria-label="update" onClick={send} color="primary">
                 <SendIcon />
               </IconButton>
-              <IconButton aria-label="refresh" onClick={refresh}>
+              <IconButton aria-label="refresh" onClick={refresh} color="primary">
                 <CachedIcon />
               </IconButton>
-              <IconButton aria-label="more-vert" >
+              <IconButton aria-label="more-vert" color="primary">
                 <MoreVertIcon />
               </IconButton>
               </div>
+            </TableCell>
+            <TableCell align='right' padding='default'>
+              <IconButton aria-label="update" onClick={toggleExpandAll} color="primary">
+                {expanded.length<props.instruments.length? (<ExpandMoreIcon/>): <ExpandLessIcon/>}
+              </IconButton>
             </TableCell>
           </TableRow>
         </TableHead>

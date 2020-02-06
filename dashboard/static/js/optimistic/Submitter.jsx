@@ -1,5 +1,6 @@
 import React from 'react'
 import Button from '@material-ui/core/Button';
+import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux'
 
 function Submitter(props) {
@@ -26,9 +27,9 @@ function Submitter(props) {
     console.log(dict)
   }
   return (
-    <div>
-      <Button onClick={submit} variant="contained">Submit</Button>
-    </div>
+    <Container>
+      <Button onClick={submit} color="primary" variant="contained">Submit</Button>
+    </Container>
   )
 
 }
