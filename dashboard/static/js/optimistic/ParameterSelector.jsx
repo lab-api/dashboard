@@ -22,8 +22,7 @@ function ParameterSelector(props) {
 
   function handleChange(instrument, name, index) {
     const value = parseFloat(event.target.value)
-    // props.setBounds({...props.bounds, [instrument]: {...props.bounds[instrument], [name]: {...props.bounds[instrument][name], [index]: value}} })
-    props.dispatch(actions.patchBounds(instrument, name, index, value))
+    props.dispatch(actions.optimization.bounds.patch(instrument, name, index, value))
   }
 
   return (

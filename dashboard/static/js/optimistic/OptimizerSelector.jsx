@@ -13,14 +13,13 @@ function OptimizerSelector(props) {
   function callback(list) {
     list = JSON.parse(list)
     setOptions(list)
-    // props.setAlgorithm(list[0])
-    props.dispatch(actions.updateOptimizer('algorithm', list[0]))
+    props.dispatch(actions.optimization.put('algorithm', list[0]))
     updateOptions(list[0])
   }
 
   function dispatchSettings(options) {
     options = JSON.parse(options)
-    props.dispatch(actions.updateOptimizerSettings(options))  // dispatch default settings on algorithm change
+    props.dispatch(actions.optimization.put('settings', options))  // dispatch default settings on algorithm change
   }
 
   function updateOptions(algorithm) {
@@ -34,8 +33,7 @@ function OptimizerSelector(props) {
   } }, [])
 
   function handleChange(event) {
-    // props.setAlgorithm(event.target.value)
-    props.dispatch(actions.updateOptimizer('algorithm', event.target.value))
+    props.dispatch(actions.optimization.put('algorithm', event.target.value))
     updateOptions(event.target.value)
   }
 

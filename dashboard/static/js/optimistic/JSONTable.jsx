@@ -15,7 +15,8 @@ function JSONTable(props) {
   const options = props.settings
 
   function handleChange(name, value) {
-    props.dispatch(actions.patchOptimizer('settings', name, parseFloat(value)))
+    props.dispatch(actions.optimization.patch('settings', name, parseFloat(value)))
+
   }
 
   return (

@@ -23,7 +23,7 @@ function Submitter(props) {
   complete &= (props.optimization.instrument != "")
 
   function submit() {
-    props.dispatch(actions.updateOptimizer('parameters', props.checked))
+    props.dispatch(actions.optimization.put('parameters', props.checked))
     console.log(props.optimization)
   }
   return (

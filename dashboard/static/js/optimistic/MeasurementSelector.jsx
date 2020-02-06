@@ -15,12 +15,13 @@ function MeasurementSelector(props) {
 
   function getMeasurementChoices(instrument) {
     setMeasurementChoices(props.measurements[instrument])
-    props.dispatch(actions.updateOptimizer('objective', props.measurements[instrument][0]))
+    props.dispatch(actions.optimization.put('objective', props.measurements[instrument][0]))
   }
 
   function setInitialState() {
     getMeasurementChoices(instruments[0])
-    props.dispatch(actions.updateOptimizer('instrument', instruments[0]))
+    props.dispatch(actions.optimization.put('instrument', instruments[0]))
+
   }
 
   React.useEffect(() => {
@@ -31,14 +32,12 @@ function MeasurementSelector(props) {
   }, [])
 
   function handleInstrumentChange(event) {
-    props.dispatch(actions.updateOptimizer('instrument', event.target.value))
+    props.dispatch(actions.optimization.put('instrument', event.target.value))
     getMeasurementChoices(event.target.value)
   }
 
   function handleChange(event) {
-    props.dispatch(actions.updateOptimizer('objective', event.target.value))
-    console.log(props.optimization)
-
+    props.dispatch(actions.optimization.put('objective', event.target.value))
   }
 
 
