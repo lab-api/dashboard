@@ -1,3 +1,22 @@
+export function updateOptimizer(field, value) {
+  return {type: 'updateOptimizer', field: field, value: value}
+}
+
+export function updateOptimizerSettings(dict) {
+  return {type: 'updateOptimizerSettings', dict: dict}
+}
+
+export function patchOptimizerSettings(name, value) {
+  return {type: 'patchOptimizerSettings', name: name, value: value}
+}
+
+export function patchOptimizer(field, name, value) {
+  return {type: 'patchOptimizer', field: field, name: name, value: value}
+}
+
+export function patchBounds(instrument, name, index, value) {
+  return {type: 'patchBounds', index: index, instrument: instrument, name: name, value: value}
+}
 
 export function updateParameter(instrument, parameter, value) {
   return {type: 'updateParameter', instrument: instrument, parameter: parameter, value: value}

@@ -15,9 +15,10 @@ export default function OptimizerCard(props) {
         </Typography>
         <div className='col'>
         <div className="row">
-          <OptimizerSelector algorithm={props.algorithm} setAlgorithm={props.setAlgorithm} update={props.setOptimizerOptions}/>
+          <OptimizerSelector algorithmChoices={props.algorithmChoices}
+                             setAlgorithmChoices={props.setAlgorithmChoices}/>
         </div>
-        <JSONTable options={props.optimizerOptions}/>
+        <JSONTable/>
         </div>
       </CardContent>
     </Card>

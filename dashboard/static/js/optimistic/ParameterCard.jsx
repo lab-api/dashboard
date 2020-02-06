@@ -12,9 +12,7 @@ export default function ParameterCard(props) {
         <Typography variant="subtitle1" component="h2">
           Select one or more knobs from the table to the left and choose optimization bounds.
         </Typography>
-        <ParameterSelector bounds={props.bounds}
-                           setBounds={props.setBounds}
-        />
+        <ParameterSelector />
       </CardContent>
     </Card>
   );

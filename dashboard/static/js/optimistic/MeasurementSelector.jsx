@@ -6,34 +6,39 @@ import Typography from '@material-ui/core/Typography';
 import FormControl from '@material-ui/core/FormControl'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import Container from '@material-ui/core/Container'
+import * as actions from '../reducers/actions.js'
 
 function MeasurementSelector(props) {
-  const [measurementsList, setMeasurementsList] = React.useState([])
-
+  const measurementChoices = props.measurementChoices
+  const setMeasurementChoices = props.setMeasurementChoices
   const instruments = Object.keys(props.measurements)
 
-  function getMeasurementsList(instrument) {
-    setMeasurementsList(props.measurements[instrument])
-    props.setMeasurement(props.measurements[instrument][0])
+  function getMeasurementChoices(instrument) {
+    setMeasurementChoices(props.measurements[instrument])
+    props.dispatch(actions.updateOptimizer('objective', props.measurements[instrument][0]))
   }
 
   function setInitialState() {
-    props.setInstrument(instruments[0])
-    getMeasurementsList(instruments[0])
+    getMeasurementChoices(instruments[0])
+    props.dispatch(actions.updateOptimizer('instrument', instruments[0]))
   }
 
   React.useEffect(() => {
-    setInitialState()
-
+    if (props.optimization.objective == "")
+    {
+      setInitialState()
+    }
   }, [])
 
   function handleInstrumentChange(event) {
-    props.setInstrument(event.target.value)
-    getMeasurementsList(event.target.value)
+    props.dispatch(actions.updateOptimizer('instrument', event.target.value))
+    getMeasurementChoices(event.target.value)
   }
 
   function handleChange(event) {
-    props.setMeasurement(event.target.value)
+    props.dispatch(actions.updateOptimizer('objective', event.target.value))
+    console.log(props.optimization)
+
   }
 
 
@@ -42,7 +47,7 @@ function MeasurementSelector(props) {
       <div className="row">
         <div className="col">
           <FormControl>
-          <Select value={props.instrument} autoWidth={true} variant="outlined" onChange={handleInstrumentChange}>
+          <Select value={props.optimization['instrument']} autoWidth={true} variant="outlined" onChange={handleInstrumentChange}>
             {instruments.map((row, index) => {
               return (
               <MenuItem key={row} value={row}>{row}</MenuItem>
@@ -54,8 +59,8 @@ function MeasurementSelector(props) {
           </div>
           <div className="col">
             <FormControl>
-              <Select value={props.measurement} autoWidth={true} variant="outlined" onChange={handleChange}>
-              {measurementsList.map((row, index) => {
+              <Select value={props.optimization['objective']} autoWidth={true} variant="outlined" onChange={handleChange}>
+              {measurementChoices.map((row, index) => {
                 return (
                 <MenuItem key={row} value={row}>{row}</MenuItem>
               )
@@ -70,6 +75,6 @@ function MeasurementSelector(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {measurements: state['measurements']}
+  return {measurements: state['measurements'], optimization: state['optimization']}
 }
 export default connect(mapStateToProps)(MeasurementSelector)

@@ -8,9 +8,16 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Input from '@material-ui/core/Input';
+import * as actions from '../reducers/actions.js'
+import { connect } from 'react-redux'
 
-export default function JSONTable(props) {
-  const options = props.options
+function JSONTable(props) {
+  const options = props.settings
+
+  function handleChange(name, value) {
+    props.dispatch(actions.patchOptimizer('settings', name, parseFloat(value)))
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label="simple table">
@@ -25,7 +32,8 @@ export default function JSONTable(props) {
           {Object.keys(options).map(row => (
             <TableRow key={row}>
               <TableCell align="left">{row}</TableCell>
-              <TableCell align="right"><Input placeholder={options[row].toString()}/></TableCell>
+              <TableCell align="right"><Input onChange={(event)=>handleChange(row, event.target.value)}
+                                              placeholder={options[row].toString()}/></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -33,3 +41,8 @@ export default function JSONTable(props) {
     </TableContainer>
   );
 }
+
+function mapStateToProps(state){
+  return {settings: state['optimization']['settings']}
+}
+export default connect(mapStateToProps)(JSONTable)

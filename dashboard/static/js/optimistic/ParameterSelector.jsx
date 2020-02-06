@@ -8,6 +8,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Input from '@material-ui/core/Input';
 import { connect } from 'react-redux'
+import * as actions from '../reducers/actions.js'
 
 function ParameterSelector(props) {
   const rows = []
@@ -21,7 +22,8 @@ function ParameterSelector(props) {
 
   function handleChange(instrument, name, index) {
     const value = parseFloat(event.target.value)
-    props.setBounds({...props.bounds, [instrument]: {...props.bounds[instrument], [name]: {...props.bounds[instrument][name], [index]: value}} })
+    // props.setBounds({...props.bounds, [instrument]: {...props.bounds[instrument], [name]: {...props.bounds[instrument][name], [index]: value}} })
+    props.dispatch(actions.patchBounds(instrument, name, index, value))
   }
 
   return (
@@ -52,6 +54,6 @@ function ParameterSelector(props) {
 }
 
 function mapStateToProps(state){
-  return {checked: state['checked'] }
+  return {checked: state['checked'], bounds: state['optimization']['bounds']}
 }
 export default connect(mapStateToProps)(ParameterSelector)

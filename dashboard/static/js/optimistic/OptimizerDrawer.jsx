@@ -9,6 +9,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Box from '@material-ui/core/Box'
 import { withStyles, makeStyles, useTheme } from "@material-ui/core/styles";
+import * as actions from '../reducers/actions.js'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -36,10 +37,6 @@ const ThemeTab = withStyles(theme => ({
       color: theme.palette.primary.main,
       opacity: 0.8,
     },
-    '&$selected': {
-      color: theme.palette.primary.main,
-      fontWeight: theme.typography.fontWeightMedium,
-    },
     '&:focus': {
       color: theme.palette.primary.main,
       outline: 'none'
@@ -48,12 +45,11 @@ const ThemeTab = withStyles(theme => ({
 }))(props => <Tab {...props} />);
 
 function OptimizerDrawer(props) {
-  const [optimizerOptions, setOptimizerOptions] = React.useState({})
-  const [algorithm, setAlgorithm] = React.useState('')
-  const [measurement, setMeasurement] = React.useState('')
-  const [instrument, setInstrument] = React.useState('')
-  const [bounds, setBounds] = React.useState(props.bounds)
+  const [algorithmChoices, setAlgorithmChoices] = React.useState([])   // list of algorithm options
+  const [measurementChoices, setMeasurementChoices] = React.useState([])
 
+  // const [bounds, setBounds] = React.useState(props.bounds)
+  props.dispatch(actions.updateOptimizer('bounds', props.bounds))
   const [expanded, setExpanded] = React.useState(false);
   const handleExpansion = panel => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
@@ -88,21 +84,21 @@ function OptimizerDrawer(props) {
       </Tabs>
 
       <TabPanel value={value} index={0}>
-        <ParameterCard bounds={bounds} setBounds={setBounds}/>
+        <ParameterCard/>
       </TabPanel>
 
       <TabPanel value={value} index={1}>
-        <MeasurementCard measurement={measurement}
-                             setMeasurement={setMeasurement}
-                             instrument={instrument}
-                             setInstrument={setInstrument}/>
+        <MeasurementCard measurementChoices={measurementChoices}
+                         setMeasurementChoices={setMeasurementChoices}
+        />
       </TabPanel>
 
       <TabPanel value={value} index={2}>
-        <OptimizerCard algorithm={algorithm} setAlgorithm={setAlgorithm} optimizerOptions={optimizerOptions} setOptimizerOptions={setOptimizerOptions}/>
+        <OptimizerCard algorithmChoices={algorithmChoices}
+                       setAlgorithmChoices={setAlgorithmChoices}/>
       </TabPanel>
 
-      <Submitter measurement={measurement} algorithm={algorithm} options={optimizerOptions} instrument={instrument} bounds={bounds}/>
+      <Submitter/>
     </div>
   )
 }

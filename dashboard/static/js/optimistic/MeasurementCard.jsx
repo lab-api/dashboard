@@ -12,10 +12,9 @@ export default function MeasurementCard(props) {
         <Typography variant="subtitle1" component="h2">
           Select a Measurement to optimize.
         </Typography>
-        <MeasurementSelector measurement={props.measurement}
-                             setMeasurement={props.setMeasurement}
-                             instrument={props.instrument}
-                             setInstrument={props.setInstrument}/>
+        <MeasurementSelector measurementChoices={props.measurementChoices}
+                             setMeasurementChoices={props.setMeasurementChoices}
+        />
       </CardContent>
     </Card>
   );

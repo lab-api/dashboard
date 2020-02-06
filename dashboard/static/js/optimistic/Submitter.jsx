@@ -2,39 +2,42 @@ import React from 'react'
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux'
+import * as actions from '../reducers/actions.js'
+import { setIn } from 'immutable'
+import get from '../utilities.js'
 
 function Submitter(props) {
+  const checked = props.checked
+  var complete = true
+
+  var parameters_complete = false
+  for (var instrument in checked){
+    if (checked[instrument].length > 0) {
+      parameters_complete = true
+    }
+  }
+  complete &= parameters_complete
+
+  complete &= (props.optimization.algorithm != "")
+  complete &= (props.optimization.objective != "")
+  complete &= (props.optimization.instrument != "")
 
   function submit() {
-    const checked = props.checked
-
-
-    const bounds = {}
-    for (var instrument in checked){
-      bounds[instrument] = {}
-      for (var i in checked[instrument]) {
-        const name = checked[instrument][i]
-        bounds[instrument][name] = props.bounds[instrument][name]
-      }
-    }
-    const dict = {}
-    dict['algorithm'] = props.algorithm
-    dict['settings'] = props.options
-    dict['objective'] = props.measurement
-    dict['instrument'] = props.instrument
-    dict['parameters'] = checked
-    dict['bounds'] = bounds
-    console.log(dict)
+    props.dispatch(actions.updateOptimizer('parameters', props.checked))
+    console.log(props.optimization)
   }
   return (
     <Container>
-      <Button onClick={submit} color="primary" variant="contained">Submit</Button>
+      <Button onClick={submit}
+              color="primary"
+              variant="contained"
+              disabled={complete? false: true}
+              >Submit</Button>
     </Container>
   )
-
 }
 
 function mapStateToProps(state){
-  return {checked: state['checked']}
+  return {checked: state['checked'], optimization: state['optimization']}
 }
 export default connect(mapStateToProps)(Submitter)
