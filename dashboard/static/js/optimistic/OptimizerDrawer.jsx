@@ -48,8 +48,9 @@ function OptimizerDrawer(props) {
   const [algorithmChoices, setAlgorithmChoices] = React.useState([])   // list of algorithm options
   const [measurementChoices, setMeasurementChoices] = React.useState([])
 
-  // const [bounds, setBounds] = React.useState(props.bounds)
-  props.dispatch(actions.updateOptimizer('bounds', props.bounds))
+  React.useEffect(() => {
+      props.dispatch(actions.optimizer.put('bounds', props.bounds))
+  }, [])
   const [expanded, setExpanded] = React.useState(false);
   const handleExpansion = panel => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
