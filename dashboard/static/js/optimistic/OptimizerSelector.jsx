@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
-import get from '../utilities.js'
+import { get } from '../utilities.js'
 import * as actions from '../reducers/actions.js'
 
 function OptimizerSelector(props) {
@@ -11,14 +11,12 @@ function OptimizerSelector(props) {
   const setOptions = props.setAlgorithmChoices
 
   function callback(list) {
-    list = JSON.parse(list)
     setOptions(list)
     props.dispatch(actions.optimization.put('algorithm', list[0]))
     updateOptions(list[0])
   }
 
   function dispatchSettings(options) {
-    options = JSON.parse(options)
     props.dispatch(actions.optimization.put('settings', options))  // dispatch default settings on algorithm change
   }
 

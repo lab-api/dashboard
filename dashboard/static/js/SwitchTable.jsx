@@ -10,7 +10,7 @@ import IconButton from "@material-ui/core/IconButton";
 import CachedIcon from "@material-ui/icons/Cached";
 import SendIcon from '@material-ui/icons/Send';
 import Switch from '@material-ui/core/Switch';
-import get from './utilities.js'
+import { get } from './utilities.js'
 import Input from '@material-ui/core/Input';
 import {connect} from 'react-redux'
 import * as actions from './reducers/actions.js'

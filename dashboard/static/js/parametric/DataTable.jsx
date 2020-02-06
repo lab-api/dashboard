@@ -18,7 +18,7 @@ import ParameterRows from './ParameterRows.jsx'
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import InstrumentRow from './InstrumentRow.jsx'
-import get from '../utilities.js'
+import { get } from '../utilities.js'
 
 function DataTable(props) {
   const [expanded, setExpanded] = React.useState([])

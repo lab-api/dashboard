@@ -1,16 +1,9 @@
+import axios from 'axios'
 
-export default function get (url, callback=null){
-  var req = new XMLHttpRequest();
-  console.log(url)
-  if (callback != null)
-  {
-    req.onreadystatechange = function() {
-      if (req.readyState == 4 && req.status == 200)
-      {
-        callback(req.responseText)
-      }
-    }
-  }
-  req.open("GET", url, true); // true for asynchronous
-  req.send()
+export function get (url, callback=(response)=>null) {
+  axios.get(url).then((response) => callback(response.data))
+}
+
+export function post(url, payload={}, callback=(response)=>null) {
+  axios.post(url, payload).then((response)=>callback(response.data))
 }
