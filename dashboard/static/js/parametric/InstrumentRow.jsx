@@ -36,11 +36,11 @@ function InstrumentRow(props) {
   };
 
   function selectAll() {
-    props.dispatch(actions.check(props.instrument, names))
+    props.dispatch(actions.checked.patch(props.instrument, names, true))
   }
 
   function deselectAll() {
-    props.dispatch(actions.uncheck(props.instrument, names))
+    props.dispatch(actions.checked.patch(props.instrument, names, false))
   }
 
   return (

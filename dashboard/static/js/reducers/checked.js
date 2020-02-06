@@ -13,7 +13,6 @@ export default function reducer(state={}, action) {
     case 'uncheck':
       const newParameters = state[action.instrument].filter(value => !action.parameters.includes(value))
       return setIn(state, [action.instrument], newParameters)
-      // return state.filter(value => !action.parameters.includes(value))
 
     case 'toggle':
       const checked = (state[action.instrument] || []).includes(action.parameter)

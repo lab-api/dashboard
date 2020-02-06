@@ -8,7 +8,7 @@ import * as actions from "./reducers/actions.js"
 function prepareInitialState(parameters) {
   for (var instrument in parameters) {
     store.dispatch(actions.addInstrument(instrument))
-    store.dispatch(actions.addCheckboxes(instrument))
+    store.dispatch(actions.checked.put(instrument))
 
     const instrument_params = parameters[instrument]
     for (var kind in instrument_params) {

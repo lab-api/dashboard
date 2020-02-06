@@ -31,25 +31,25 @@ test('Initializes measurements', () => {
   expect(initiatedMeasurement).toStrictEqual({'circle': []});
 });
 
-const addCheckboxes = actions.addCheckboxes('circle')
+const addCheckboxes = actions.checked.put('circle')
 const addedCheckboxes = reducer({}, addCheckboxes)['checked']
 test('Adds checkboxes', () => {
   expect(addedCheckboxes).toStrictEqual({'circle': []});
 });
 
-const checkParameter = actions.check('circle', ['isRound', 'isNotFlat'])
+const checkParameter = actions.checked.patch('circle', ['isRound', 'isNotFlat'], true)
 const checkedParameter = reducer({}, checkParameter)['checked']
 test('Checks parameter', () => {
   expect(checkedParameter).toStrictEqual({'circle': ['isRound', 'isNotFlat']});
 });
 
-const uncheckParameter = actions.uncheck('circle', ['isRound'])
+const uncheckParameter = actions.checked.patch('circle', ['isRound'], false)
 const uncheckedParameter = reducer({'checked': checkedParameter}, uncheckParameter)['checked']
 test('Unchecks parameter', () => {
   expect(uncheckedParameter).toStrictEqual({'circle': ['isNotFlat']});
 });
 //
-const toggleParameter = actions.toggle('circle', 'isNotFlat')
+const toggleParameter = actions.checked.toggle('circle', 'isNotFlat')
 const toggledParameter = reducer({'checked': uncheckedParameter}, toggleParameter)['checked']
 test('Toggles parameter', () => {
   expect(toggledParameter).toStrictEqual({'circle': []});

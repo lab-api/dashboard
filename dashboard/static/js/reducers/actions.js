@@ -1,6 +1,8 @@
 import * as optimization from '../actions/optimization.js'
 export {optimization}
 
+import * as checked from '../actions/checked.js'
+export {checked}
 
 export function updateParameter(instrument, parameter, value) {
   return {type: 'updateParameter', instrument: instrument, parameter: parameter, value: value}
@@ -28,20 +30,4 @@ export function addMeasurement(instrument, parameter) {
 
 export function addInstrument(instrument) {
   return {type: 'addInstrument', instrument: instrument}
-}
-
-export function addCheckboxes(instrument) {
-  return {type: 'addCheckboxes', instrument: instrument}
-}
-
-export function check(instrument, parameters) {
-  return {type: 'check', instrument: instrument, parameters: parameters}
-}
-
-export function uncheck(instrument, parameters) {
-  return {type: 'uncheck', instrument: instrument, parameters: parameters}
-}
-
-export function toggle(instrument, parameter) {
-  return {type: 'toggle', instrument: instrument, parameter: parameter}
 }

@@ -25,7 +25,7 @@ function DataTable(props) {
 
   function deselectAll() {
     for (var instrument in props.parameters) {
-      props.dispatch(actions.uncheck(instrument, Object.keys(props.parameters[instrument])))
+      props.dispatch(actions.checked.patch(instrument, Object.keys(props.parameters[instrument]), false))
     }
   }
   function send() {

@@ -9,7 +9,7 @@ import Input from '@material-ui/core/Input';
 
 function ParameterRows(props) {
   const handleClick = (event, name) => {
-    props.dispatch(actions.toggle(props.instrument, name))
+    props.dispatch(actions.checked.toggle(props.instrument, name))
   };
 
   function handleUserInput(instrument, parameter, value) {
