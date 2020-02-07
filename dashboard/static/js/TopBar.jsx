@@ -15,39 +15,13 @@ export default function ButtonAppBar(props) {
       zIndex: theme.zIndex.drawer + 1,
       '&:focus': {outline: 'none'},
     },
-    drawer: {
-      width: props.drawerWidth,
-      flexShrink: 0,
-    },
-    drawerPaper: {
-      width: props.drawerWidth,
-      paddingTop: 64 // equal to AppBar height
 
-    },
     button: {    '&:focus': {outline: 'none'},},
     appBarSpacer: theme.mixins.toolbar
 
   }));
 
   const classes = useStyles();
-  const open = props.open
-  const setOpen = props.setOpen
-  // const [open, setOpen] = useState(false)
-  function toggleDrawer() {
-    if (open) {
-      setOpen(false)
-    }
-    else {
-      setOpen(true)
-    }
-  }
-  function handleDrawerOpen() {
-  setOpen(true)
-  }
-
-  function handleDrawerClose() {
-    setOpen(false)
-  }
 
   return (
     <div>
@@ -56,20 +30,20 @@ export default function ButtonAppBar(props) {
           <Typography variant="h6" style={{ flex: 1 }}>
             LabAPI
           </Typography>
-          {open?
-          <IconButton className={classes.button} edge="start" aria-label="open-drawer" onClick={toggleDrawer} color="inherit" aria-label="menu">
+          {props.drawerOpen?
+          <IconButton className={classes.button} edge="start"
+                      aria-label="open-drawer"
+                      onClick={props.closeDrawers}
+                      color="inherit"
+                      aria-label="menu"
+                      >
             <ClearIcon />
           </IconButton>
         :null}
         </Toolbar>
       </AppBar>
       <div className={classes.appBarSpacer} />
-      <Drawer elevation={24} variant="persistent" anchor="right" open={open} className={classes.drawer}
-        classes={{
-          paper: classes.drawerPaper,
-        }}>
-        <OptimizerDrawer />
-      </Drawer>
+
     </div>
   );
 }

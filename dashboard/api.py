@@ -14,6 +14,7 @@ class API:
         self.port = port
         self.namespace = namespace
         self.debug = debug
+        self.results = {}
 
     def get(self, endpoint):
         if endpoint[0] == '/':
@@ -217,6 +218,21 @@ class API:
             for col in algo.dataset.columns:
                 data[col] = list(algo.dataset[col].values)
 
+            self.results[str(len(self.results))] = algo.dataset
             return json.dumps(data)
+
+        @app.route('/optimistic/results')
+        def list_results():
+            return json.dumps(list(self.results.keys()))
+
+        @app.route('/optimistic/results/<id>')
+        def retrieve_results(id):
+            data = {}
+            dataset = self.results[id]
+            columns = [{'title': x, 'field': x} for x in dataset.columns]
+            records = dataset.to_json(orient='records')
+            
+            return json.dumps({'columns': columns, 'records': records})
+            # return dataset.to_html()
 
         app.run(host=self.addr, port=self.port, debug=self.debug, threaded=False)

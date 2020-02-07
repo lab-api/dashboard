@@ -23,18 +23,15 @@ function Submitter(props) {
   complete &= (props.optimization.objective != "")
   complete &= (props.optimization.instrument != "")
 
-  const updateParameters = () => dispatch => {
-    dispatch(actions.optimization.put('parameters', props.checked));
-    return Promise.resolve();
-  };
-
   function submit() {
       console.log(props.optimization)
-      post('/optimistic/submit', props.optimization, displayResult)
+      post('/optimistic/submit', props.optimization, (data)=>{displayResult(data, props.optimization.algorithm)})
     }
 
 
-  function displayResult(data) {
+  function displayResult(data, algorithm) {
+    props.setSnackbarOpen(true)
+    props.setSnackbarName(algorithm)
     console.log(data)
   }
 

@@ -10,6 +10,7 @@ import Tab from '@material-ui/core/Tab';
 import Box from '@material-ui/core/Box'
 import { withStyles, makeStyles, useTheme } from "@material-ui/core/styles";
 import * as actions from '../reducers/actions.js'
+import Drawer from "@material-ui/core/Drawer";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -51,10 +52,6 @@ function OptimizerDrawer(props) {
   React.useEffect(() => {
       props.dispatch(actions.optimization.put('bounds', props.bounds))
   }, [])
-  const [expanded, setExpanded] = React.useState(false);
-  const handleExpansion = panel => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
-  };
 
   const [value, setValue] = React.useState(0);
   const handleChange = (event, newValue) => {
@@ -69,6 +66,10 @@ function OptimizerDrawer(props) {
 }
 
   return (
+    <Drawer elevation={24} variant="persistent" anchor="right" open={props.open} className={props.classes.drawer}
+      classes={{
+        paper: props.classes.drawerPaper,
+      }}>
     <div>
       <Tabs
         value={value}
@@ -99,8 +100,9 @@ function OptimizerDrawer(props) {
                        setAlgorithmChoices={setAlgorithmChoices}/>
       </TabPanel>
 
-      <Submitter/>
+      <Submitter setSnackbarName={props.setSnackbarName} setSnackbarOpen={props.setSnackbarOpen}/>
     </div>
+    </Drawer>
   )
 }
 
