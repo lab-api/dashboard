@@ -72,7 +72,7 @@ export default function App(props){
 
 
     <OptimizerDrawer open={openDrawer=='Optimize'} classes={classes} setSnackbarName={setSnackbarName} setSnackbarOpen={setSnackbarOpen} />
-    <ResultsDrawer open={openDrawer=='Results'} classes={classes} setId={setId} data={data} setData={setData} columns={columns} setColumns={setColumns} loadDataset={loadDataset} />
+    <ResultsDrawer open={openDrawer=='Results'} classes={classes} width={drawerWidth} setId={setId} data={data} setData={setData} columns={columns} setColumns={setColumns} loadDataset={loadDataset} />
 
     </main>
     <SpeedDial setOpenDrawer={setOpenDrawer}/>

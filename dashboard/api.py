@@ -229,9 +229,9 @@ class API:
         def retrieve_results(id):
             data = {}
             dataset = self.results[id]
-            columns = [{'title': x, 'field': x} for x in dataset.columns]
+            columns = [{'width': 250, 'label': x, 'dataKey': x} for x in dataset.columns]
             records = dataset.to_json(orient='records')
-            
+
             return json.dumps({'columns': columns, 'records': records})
             # return dataset.to_html()
 

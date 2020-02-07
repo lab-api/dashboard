@@ -5,19 +5,21 @@ import Button from "@material-ui/core/Button";
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
-
 import Paper from '@material-ui/core/Paper';
 import Selector from '../components/Selector.jsx'
-import ResultsTable from './ResultsTable.jsx'
+import VirtualizedTable from '../components/VirtualizedTable.jsx'
+import Plotter from './Plotter.jsx'
 import { get } from '../utilities.js'
 
 export default function ResultsDrawer(props) {
   // const [data, setData] = React.useState([])
   // const [columns, setColumns] = React.useState([])
-
+  const [showPlot, setShowPlot] = React.useState(false)
   function updateCurrentItem(id) {
     props.setId(id)
   }
+
+  const [plotterOpen, setPlotterOpen] = React.useState(false)
 
   return (
     <Drawer elevation={24} variant="persistent" anchor="right" open={props.open} className={props.classes.drawer}
@@ -38,8 +40,12 @@ export default function ResultsDrawer(props) {
         <Grid item xs={3}>
           <Button onClick={props.loadDataset}> Load </Button>
         </Grid>
+        <Grid item xs={3}>
+          <Button onClick={()=>{setPlotterOpen(true)}}> Plot </Button>
+        </Grid>
       </Grid>
-    <Paper> <ResultsTable data={props.data} columns={props.columns}/> </Paper>
+    <Paper> <VirtualizedTable data={props.data} columns={props.columns} height={550} width={props.width}/> </Paper>
+    <Plotter open={plotterOpen} setOpen={setPlotterOpen} data={props.data} columns={props.columns}/>
     </Drawer>
   )
 }
