@@ -3,7 +3,6 @@ import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
-import { setIn } from 'immutable'
 import { get, post } from '../utilities.js'
 
 function Submitter(props) {

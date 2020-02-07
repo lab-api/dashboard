@@ -67,25 +67,59 @@ class API:
     def serve(self):
         app = Flask(__name__)
 
-        @app.route("/")
-        def hello():
-            d = {}
+        def prepare_initial_state():
+            state = {'bounds': {},
+                     'checked': {},
+                     'inputs': {},
+                     'instruments': [],
+                     'measurements': {},
+                     'parameters': {},
+                     'switches': {}
+                     }
+            state['optimization'] = {'algorithm': '',
+                                     'settings': {},
+                                     'instrument': '',
+                                     'objective': '',
+                                     'parameters': {},
+                                     'bounds': {}}
+
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                d[inst.name] = {'knob': {}, 'switch': {}, 'measurement': {}}
+                instrument = inst.name
+                state['bounds'][instrument] = {}
+                state['checked'][instrument] = []
+                state['inputs'][instrument] = {}
+                state['instruments'].append(instrument)
+                state['measurements'][instrument] = []
+                state['parameters'][instrument] = {}
+                state['switches'][instrument] = {}
+
+                state['optimization']['parameters'][instrument] = []
 
                 for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    if p.kind == 'knob':
+                        state['bounds'][instrument][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
+                        state['inputs'][instrument][p.name] = ''
+                        state['parameters'][instrument][p.name] = p.get()
+                    elif p.kind == 'switch':
+                        state['switches'][instrument][p.name] = p.get()
                     if p.kind == 'measurement':
-                        d[inst.name][p.kind][p.name] = ''
-                    else:
-                        d[inst.name][p.kind][p.name] = {'value': p.get(), 'min': p.bounds[0], 'max': p.bounds[1]}
+                        state['measurements'][instrument].append(p.name)
 
+                if len(state['measurements'][instrument]) == 0:
+                    del state['measurements'][instrument]
+                state['optimization']['bounds'] = state['bounds']
+            return state
 
-            return render_template('parameters.html', parameters=d)
+        @app.route("/")
+        def hello():
+            state = prepare_initial_state()
+            return render_template('index.html', state=state)
 
         @app.route('/shutdown', methods=['GET'])
         def shutdown():
             self.shutdown_server()
             return 'Server shutting down...'
+
 
         ''' Instrument endpoints '''
         @app.route("/instruments", methods=['GET'])
@@ -234,5 +268,6 @@ class API:
 
             return json.dumps({'columns': columns, 'records': records})
             # return dataset.to_html()
+
 
         app.run(host=self.addr, port=self.port, debug=self.debug, threaded=False)

@@ -1,14 +1,14 @@
-import parameters from './parameters.js'
-import bounds from './bounds.js'
-import measurements from './measurements.js'
-import checked from './checked.js'
-import switches from './switches.js'
-import instruments from './instruments.js'
-import inputs from './inputs.js'
-import optimization from './optimization.js'
+import parameters from '../features/parameters.js'
+import checked from '../features/checked.js'
+import switches from '../features/switches.js'
+import inputs from '../features/inputs.js'
+import optimization from '../features/optimization.js'
+import bounds from '../features/bounds.js'
+import instruments from '../features/instruments.js'
+import measurements from '../features/measurements.js'
 
 import { combineReducers } from 'redux'
 
-const reducer = combineReducers({bounds, parameters, measurements, checked, switches, instruments, inputs, optimization})
+const reducer = combineReducers({parameters, checked, switches, inputs, optimization, bounds, instruments, measurements})
 
 export default reducer

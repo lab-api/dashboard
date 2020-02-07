@@ -1,33 +1,14 @@
-import * as optimization from '../actions/optimization.js'
+import * as optimization from '../features/optimization.js'
 export {optimization}
 
-import * as checked from '../actions/checked.js'
+import * as checked from '../features/checked.js'
 export {checked}
 
-export function updateParameter(instrument, parameter, value) {
-  return {type: 'updateParameter', instrument: instrument, parameter: parameter, value: value}
-}
+import * as parameters from '../features/parameters.js'
+export {parameters}
 
-export function updateInput(instrument, parameter, value) {
-  return {type: 'updateInput', instrument: instrument, parameter: parameter, value: value}
-}
+import * as inputs from '../features/inputs.js'
+export {inputs}
 
-export function updateBounds(instrument, parameter, value) {
-  return {type: 'updateBounds', instrument: instrument, parameter: parameter, value: value}
-}
-
-export function updateSwitch(instrument, parameter, value) {
-  return {type: 'updateSwitch', instrument: instrument, parameter: parameter, value: value}
-}
-
-export function initializeMeasurements(instrument) {
-  return {type: 'initializeMeasurements', instrument: instrument}
-}
-
-export function addMeasurement(instrument, parameter) {
-  return {type: 'addMeasurement', instrument: instrument, parameter: parameter}
-}
-
-export function addInstrument(instrument) {
-  return {type: 'addInstrument', instrument: instrument}
-}
+import * as switches from '../features/switches.js'
+export {switches}

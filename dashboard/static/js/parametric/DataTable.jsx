@@ -40,8 +40,8 @@ function DataTable(props) {
         }
 
         const url = '/instruments/'.concat(instrument, '/parameters/', name, '/set/', text)
-        props.dispatch(actions.updateParameter(instrument_name, name, parseFloat(text)))
-        props.dispatch(actions.updateInput(instrument_name, name, ''))
+        props.dispatch(actions.parameters.patch(instrument_name, name, parseFloat(text)))
+        props.dispatch(actions.inputs.patch(instrument_name, name, ''))
 
         get(url)
       }
@@ -50,8 +50,8 @@ function DataTable(props) {
   }
 
   function updateParameter(instrument, name, value) {
-    props.dispatch(actions.updateParameter(instrument, name, parseFloat(value)))
-    props.dispatch(actions.updateInput(instrument, name, ''))
+    props.dispatch(actions.parameters.patch(instrument, name, parseFloat(value)))
+    props.dispatch(actions.inputs.patch(instrument, name, ''))
   }
 
   function refresh() {

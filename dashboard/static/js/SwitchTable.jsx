@@ -39,7 +39,7 @@ function SwitchTable(props){
 
   function handleChange(event) {
     const name = event.target.name
-    props.dispatch(actions.updateSwitch(props.instrument, name, event.target.checked))
+    props.dispatch(actions.switches.patch(props.instrument, name, event.target.checked))
     const url = prefix.concat(name, '/set/', event.target.checked)
     get(url)
   }
@@ -48,7 +48,7 @@ function SwitchTable(props){
     for (var name in props.switches) {
       const url = prefix.concat(name, '/get')
       function callback(val) {
-        props.dispatch(actions.updateSwitch(props.instrument, name, val=='True'))
+        props.dispatch(actions.switches.patch(props.instrument, name, val=='True'))
       }
       get(url, callback)
     }

@@ -13,7 +13,7 @@ function ParameterRows(props) {
   };
 
   function handleUserInput(instrument, parameter, value) {
-    props.dispatch(actions.updateInput(instrument, parameter, value))
+    props.dispatch(actions.inputs.patch(instrument, parameter, value))
   }
   return (
     <React.Fragment>
