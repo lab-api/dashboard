@@ -35,7 +35,7 @@ function DataTable(props) {
         const name = props.checked[instrument][i]
 
         const text = props.inputs[instrument][name]
-        if (text == null) {
+        if (text == '') {
           text = props.parameters[instrument][name]
         }
 
