@@ -46,13 +46,6 @@ const ThemeTab = withStyles(theme => ({
 }))(props => <Tab {...props} />);
 
 function OptimizerDrawer(props) {
-  const [algorithmChoices, setAlgorithmChoices] = React.useState([])   // list of algorithm options
-  const [measurementChoices, setMeasurementChoices] = React.useState([])
-
-  React.useEffect(() => {
-      props.dispatch(actions.optimization.put('bounds', props.bounds))
-  }, [])
-
   const [value, setValue] = React.useState(0);
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -90,14 +83,11 @@ function OptimizerDrawer(props) {
       </TabPanel>
 
       <TabPanel value={value} index={1}>
-        <MeasurementCard measurementChoices={measurementChoices}
-                         setMeasurementChoices={setMeasurementChoices}
-        />
+        <MeasurementCard/>
       </TabPanel>
 
       <TabPanel value={value} index={2}>
-        <OptimizerCard algorithmChoices={algorithmChoices}
-                       setAlgorithmChoices={setAlgorithmChoices}/>
+        <OptimizerCard/>
       </TabPanel>
 
       <Submitter setSnackbarName={props.setSnackbarName} setSnackbarOpen={props.setSnackbarOpen}/>

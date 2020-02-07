@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import OptimizerSelector from './OptimizerSelector.jsx'
 import JSONTable from './JSONTable.jsx'
 
-export default function OptimizerCard(props) {
+export default function OptimizerCard() {
   return (
     <Card>
       <CardContent>
@@ -15,8 +15,7 @@ export default function OptimizerCard(props) {
         </Typography>
         <div className='col'>
         <div className="row">
-          <OptimizerSelector algorithmChoices={props.algorithmChoices}
-                             setAlgorithmChoices={props.setAlgorithmChoices}/>
+          <OptimizerSelector/>
         </div>
         <JSONTable/>
         </div>

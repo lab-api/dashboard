@@ -5,6 +5,9 @@
 // a list, and passes it into the callback.
 // The "callback" prop is executed when the selection changes.
 
+// The "refresh" prop is a boolean which determines whether the source is queried
+// every time the DOM is rendered, or only the first time.
+
 import React from 'react'
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -14,10 +17,17 @@ import FormHelperText from '@material-ui/core/FormHelperText'
 import PropTypes from 'prop-types';
 import { isEqual } from 'lodash'
 
-export default function Selector({source, callback, label}) {
+export default function Selector({source, callback=null, label='', refresh=true}) {
   const [choices, setChoices] = React.useState([])
   const [currentChoice, setCurrentChoice] = React.useState('')
 
+  function getChoices() {
+    // Query the source function if refresh==true or return already-populated
+    // choices if refresh==false. Always refreshes if choices is empty.
+    if (choices.length == 0 || refresh) {
+      source(updateChoices)
+    }
+  }
   function updateChoices(newChoices) {
       if (!isEqual(choices, newChoices)) {
         setChoices(newChoices)
@@ -28,11 +38,12 @@ export default function Selector({source, callback, label}) {
 
   function handleChange(choice) {
     setCurrentChoice(choice)
-    if (typeof(callback) != 'undefined') {
+    if (callback != null) {
       callback(choice)
     }
   }
-  React.useEffect(() => source(updateChoices))    // populate choices when the element is rendered
+  React.useEffect(() => getChoices())    // populate choices when the element is rendered
+
   return (
     <FormControl>
       <Select value={currentChoice}
@@ -54,7 +65,8 @@ export default function Selector({source, callback, label}) {
 }
 
 Selector.propTypes = {
-  source: PropTypes.func,
+  source: PropTypes.func.isRequired,
   callback: PropTypes.func,
-  label: PropTypes.string
+  label: PropTypes.string,
+  refresh: PropTypes.bool
 }

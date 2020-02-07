@@ -33,7 +33,9 @@ export default function ResultsDrawer(props) {
         <Grid item xs={3}>
           <Selector source={(callback) => get('/optimistic/results', (newChoices) => callback(newChoices))}
                     callback={(id) => props.setId(id)}
-                    label={"Dataset"}/>
+                    label={"Dataset"}
+                    refresh={true}
+                    />
         </Grid>
         <Grid item xs={3}>
           <Button onClick={props.loadDataset}> Load </Button>
