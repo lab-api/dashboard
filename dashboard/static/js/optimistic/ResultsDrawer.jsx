@@ -15,10 +15,6 @@ export default function ResultsDrawer(props) {
   // const [data, setData] = React.useState([])
   // const [columns, setColumns] = React.useState([])
   const [showPlot, setShowPlot] = React.useState(false)
-  function updateCurrentItem(id) {
-    props.setId(id)
-  }
-
   const [plotterOpen, setPlotterOpen] = React.useState(false)
 
   return (
@@ -35,7 +31,9 @@ export default function ResultsDrawer(props) {
         style={{ minHeight: '15vh' }}
       >
         <Grid item xs={3}>
-          <Selector url={'/optimistic/results'} callback={updateCurrentItem} label={"Dataset"}/>
+          <Selector source={(callback) => get('/optimistic/results', (newChoices) => callback(newChoices))}
+                    callback={(id) => props.setId(id)}
+                    label={"Dataset"}/>
         </Grid>
         <Grid item xs={3}>
           <Button onClick={props.loadDataset}> Load </Button>
