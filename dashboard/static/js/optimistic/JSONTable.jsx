@@ -15,7 +15,7 @@ function JSONTable(props) {
   const options = props.settings
 
   function handleChange(name, value) {
-    props.dispatch(actions.optimization.patch('settings', name, parseFloat(value)))
+    props.dispatch(actions.ui.optimization.patch('settings', name, parseFloat(value)))
 
   }
 
@@ -44,6 +44,6 @@ function JSONTable(props) {
 }
 
 function mapStateToProps(state){
-  return {settings: state['optimization']['settings']}
+  return {settings: state['ui']['optimization']['settings']}
 }
 export default connect(mapStateToProps)(JSONTable)

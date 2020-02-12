@@ -32,7 +32,7 @@ function bufferToDict(ui, key, newKey) {
 
 
 function Submitter(props) {
-  React.useEffect(() => {props.dispatch(actions.optimization.put('parameters', props.checked))})  // keep optimization parameters linked to checked
+  React.useEffect(() => {props.dispatch(actions.ui.optimization.put('parameters', props.checked))})  // keep optimization parameters linked to checked
   var complete = true
   const bounds = {}
   var parameters_complete = false
@@ -87,7 +87,7 @@ function Submitter(props) {
 
 function mapStateToProps(state){
   return {checked: state['checked'],
-          optimization: state['optimization'],
+          optimization: state['ui']['optimization'],
           bounds: state['bounds'],
           ui: state['ui']}
 }

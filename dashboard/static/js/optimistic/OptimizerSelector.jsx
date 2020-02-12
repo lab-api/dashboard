@@ -8,9 +8,9 @@ import * as actions from '../reducers/actions.js'
 function OptimizerSelector(props) {
 
   function handleChange(id) {
-    props.dispatch(actions.optimization.put('algorithm', id))
+    props.dispatch(actions.ui.optimization.put('algorithm', id))
     get('/optimistic/algorithms/'.concat(id, '/parameters'),
-        (options)=>props.dispatch(actions.optimization.put('settings', options)))
+        (options)=>props.dispatch(actions.ui.optimization.put('settings', options)))
   }
 
   return (

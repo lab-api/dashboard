@@ -6,6 +6,8 @@ from parametric import Parameter, Attribute, Instrument
 import attr
 from threading import Thread
 from optimistic.algorithms import *
+from flask_socketio import SocketIO
+from functools import partial
 
 class API:
     def __init__(self, namespace, addr='127.0.0.1', port=54031, debug=False):
@@ -65,50 +67,73 @@ class API:
 
     def serve(self):
         app = Flask(__name__)
+        socketio = SocketIO(app)
+
+        def emit_parameter_update(instrument, parameter, value):
+            socketio.emit('parameter', {'instrument': instrument,
+                                        'parameter': parameter,
+                                        'value': value})
+
+        def bind_callbacks():
+            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
+                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    if p.kind == 'knob':
+                        p.callbacks['api'] = partial(emit_parameter_update, inst.name, p.name)
+
+        def check_bounds():
+            state = {}
+            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
+                state[inst.name] = {}
+                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    if p.kind == 'knob':
+                        state[inst.name][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
+            return state
+
+        def measure_parameters():
+            state = {}
+            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
+                state[inst.name] = {}
+                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
+                    if p.kind == 'knob':
+                        state[inst.name][p.name] = p.get()
+            return state
 
         def prepare_initial_state():
-            state = {'alert': {'open': False, 'severity': 'error', 'text': ''},
-                     'bounds': {},
-                     'checked': {},
+            state = {'bounds': {},
                      'instruments': [],
                      'measurements': {},
                      'parameters': {},
                      'switches': {}
                      }
-            state['optimization'] = {'algorithm': '',
-                                     'settings': {},
-                                     'instrument': '',
-                                     'objective': '',
-                                     'parameters': {}}
 
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
                 instrument = inst.name
-                state['bounds'][instrument] = {}
-                state['checked'][instrument] = []
                 state['instruments'].append(instrument)
                 state['measurements'][instrument] = []
-                state['parameters'][instrument] = {}
                 state['switches'][instrument] = {}
-                state['optimization']['parameters'][instrument] = []
 
                 for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
-                    if p.kind == 'knob':
-                        state['bounds'][instrument][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
-                        state['parameters'][instrument][p.name] = p.get()
-
-                    elif p.kind == 'switch':
+                    if p.kind == 'switch':
                         state['switches'][instrument][p.name] = p.get()
-                    if p.kind == 'measurement':
+                    elif p.kind == 'measurement':
                         state['measurements'][instrument].append(p.name)
 
                 if len(state['measurements'][instrument]) == 0:
                     del state['measurements'][instrument]
+
+            state['parameters'] = measure_parameters()
+            state['bounds'] = check_bounds()
             return state
 
         @app.route("/")
         def hello():
             state = prepare_initial_state()
+            bind_callbacks()
             return render_template('index.html', state=state)
+
+        @app.route("/parameters")
+        def get_parameter_values():
+            return json.dumps(measure_parameters())
 
         @app.route('/shutdown', methods=['GET'])
         def shutdown():
@@ -117,23 +142,6 @@ class API:
 
 
         ''' Instrument endpoints '''
-        @app.route("/instruments", methods=['GET'])
-        def list_instruments():
-            instruments = self.search(Instrument, self.namespace)
-            names = [inst.name for inst in instruments]
-            return json.dumps(names)
-
-        @app.route("/instruments/<instrument>/parameters", methods=['GET'])
-        def list_instrument_parameters(instrument):
-            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            params = self.search(Parameter, inst.__dict__)
-            d = {}
-            for p in params:
-                d[p.name] = p()
-            d = {instrument: d}
-            return render_template('parameters.html', parameters=d)
-
-
         @app.route("/instruments/<instrument>/parameters/<parameter>/get", methods=['GET'])
         def get_instrument_parameter(instrument, parameter):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
@@ -163,14 +171,6 @@ class API:
             return ''
 
         ''' Parameter endpoints '''
-        @app.route("/parameters", methods=['GET'])
-        def list_parameters():
-            params = self.search(Parameter, self.namespace)
-            d = {}
-            for p in params:
-                d[p.name] = p()
-            return render_template('parameters.html', parameters=d)
-
         @app.route("/parameters/<parameter>/set/<value>", methods=['GET'])
         def set_parameter(parameter, value):
             param = self.search(Parameter, self.namespace, return_dict=True)[parameter]
@@ -262,7 +262,5 @@ class API:
             records = dataset.to_json(orient='records')
 
             return json.dumps({'columns': columns, 'records': records})
-            # return dataset.to_html()
 
-
-        app.run(host=self.addr, port=self.port, debug=self.debug, threaded=False)
+        socketio.run(app, host=self.addr, port=self.port, debug=self.debug)

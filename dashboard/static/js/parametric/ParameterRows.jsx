@@ -11,9 +11,6 @@ function ParameterRows(props) {
   const handleClick = (event, name) => {
     props.dispatch(actions.checked.toggle(props.instrument, name))
   };
-  function handleUserInput(instrument, parameter, value, error) {
-    props.dispatch(actions.inputs.patch(instrument, parameter, value))
-  }
 
   return (
     <React.Fragment>
@@ -43,7 +40,6 @@ function ParameterRows(props) {
 function mapStateToProps(state, ownProps){
   return {parameters: state['parameters'][ownProps['instrument']],
           checked: state['checked'][ownProps['instrument']],
-          inputs: state['inputs'][ownProps['instrument']],
           bounds: state['bounds'][ownProps['instrument']]
         }
 }

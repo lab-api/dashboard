@@ -22,7 +22,7 @@ function ParameterSelector(props) {
   }
 
   function handleChange(instrument, name, index, value, error) {
-    props.dispatch(actions.optimization.bounds.patch(instrument, name, index, value))
+    props.dispatch(actions.ui.optimization.bounds.patch(instrument, name, index, value))
   }
 
   return (
@@ -70,7 +70,7 @@ function ParameterSelector(props) {
 
 function mapStateToProps(state){
   return {checked: state['checked'],
-          bounds: state['optimization']['bounds'],
+          bounds: state['ui']['optimization']['bounds'],
           parameter_bounds: state['bounds']}
 }
 export default connect(mapStateToProps)(ParameterSelector)

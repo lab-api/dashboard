@@ -21,7 +21,7 @@ function MeasurementSelector(props) {
       <div className="row">
         <div className="col">
           <Selector source={(callback) => callback(Object.keys(props.measurements))}
-                    callback={(id) => props.dispatch(actions.optimization.put('instrument', id))}
+                    callback={(id) => props.dispatch(actions.ui.optimization.put('instrument', id))}
                     label={"Instrument"}
                     refresh={false}
                     />
@@ -29,7 +29,7 @@ function MeasurementSelector(props) {
 
           <div className="col">
             <Selector source={(callback) => listMeasurements(callback)}
-                      callback={(id) => props.dispatch(actions.optimization.put('objective', id))}
+                      callback={(id) => props.dispatch(actions.ui.optimization.put('objective', id))}
                       label={"Measurement"}
                       refresh={true}
                       />
@@ -41,6 +41,6 @@ function MeasurementSelector(props) {
 
 function mapStateToProps(state){
   return {measurements: state['measurements'],
-          optimization: state['optimization']}
+          optimization: state['ui']['optimization']}
 }
 export default connect(mapStateToProps)(MeasurementSelector)

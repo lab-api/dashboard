@@ -49,7 +49,7 @@ function DataTable(props) {
         get(url)
       }
     }
-    refresh()
+    deselectAll()
   }
 
   function updateParameter(instrument, name, value) {
@@ -57,13 +57,19 @@ function DataTable(props) {
     props.dispatch(actions.ui.patch('parameters', 'display', instrument, name, ''))
   }
 
-  function refresh() {
+  function refresh(dispatch, instrument, name) {
+    const url = '/instruments/'.concat(instrument, '/parameters/', name, '/get')
+    get(url, (value) => {
+      dispatch(actions.parameters.patch(instrument, name, parseFloat(value)))
+    })
+  }
+
+  function refreshChecked() {
     for (var instrument in props.checked) {
       for (var i in props.checked[instrument]) {
-        const instrument_name = instrument
         const name = props.checked[instrument][i]
-        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/get')
-        get(url, (value) => updateParameter(instrument_name, name, value))
+        refresh(props.dispatch, instrument, name)
+        props.dispatch(actions.ui.patch('parameters', 'display', instrument, name, ''))
       }
     }
     deselectAll()
@@ -105,7 +111,7 @@ function DataTable(props) {
               <IconButton aria-label="update" onClick={send} color="primary">
                 <SendIcon />
               </IconButton>
-              <IconButton aria-label="refresh" onClick={refresh} color="primary">
+              <IconButton aria-label="refresh" onClick={refreshChecked} color="primary">
                 <CachedIcon />
               </IconButton>
               <IconButton aria-label="more-vert" color="primary">
@@ -140,7 +146,6 @@ function mapStateToProps(state, ownProps){
   return {instruments: state['instruments'],
           parameters: state['parameters'],
           checked: state['checked'],
-          inputs: state['inputs'],
           bounds: state['bounds'],
           alert: state['alert'],
           ui: state['ui']}

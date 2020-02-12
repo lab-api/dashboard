@@ -10,8 +10,7 @@ import ResultsDrawer from './optimistic/ResultsDrawer.jsx'
 import ResultSnackbar from './optimistic/ResultSnackbar.jsx'
 import AlertSnackbar from './AlertSnackbar.jsx'
 import { get } from './utilities.js'
-
-// problem: using a single state to define the open drawer causes all drawers to re-render each time one is changed
+import * as actions from './reducers/actions.js'
 
 const theme = createMuiTheme({
   palette: {
@@ -45,6 +44,12 @@ export default function App(props){
   const [data, setData] = React.useState([])
   const [columns, setColumns] = React.useState([])
   const [id, setId] = React.useState('')
+
+  props.socket.on('parameter', (data) => {
+    props.dispatch(actions.parameters.patch(data.instrument, data.parameter, data.value))
+    props.dispatch(actions.ui.patch('parameters', 'display', data.instrument, data.parameter, ''))
+
+  })
 
   function closeDrawers() {
     setOpenDrawer('')
