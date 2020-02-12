@@ -9,5 +9,5 @@ setup(
     author_email='robert.j.fasano@colorado.edu',
     packages=find_packages(exclude=['docs']),
     license='MIT',
-    install_requires=['flask', 'attrs']
+    install_requires=['flask', 'attrs', 'flask-socketio', 'requests']
 )
