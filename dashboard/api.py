@@ -2,7 +2,8 @@ from flask import Flask, request, render_template
 import requests
 import json
 import importlib, inspect
-from parametric import Parameter, Attribute, Instrument
+from parametric import Parameter, Instrument
+from parametric.factory import Knob, Switch, Measurement
 import attr
 from threading import Thread
 from optimistic.algorithms import *
@@ -41,13 +42,11 @@ class API:
         func()
 
     @staticmethod
-    def search(type_, namespace, return_dict=False, name=None, kind=None):
+    def search(type_, namespace, return_dict=False, name=None):
         ''' Returns all instances of a passed type in the dictionary. If no namespace is passed, search in globals(). '''
         instances = []
         for x in namespace.keys():
             if isinstance(namespace[x], type_):
-                if kind is not None and namespace[x].kind != kind:
-                    continue
                 instances.append(namespace[x])
 
         if name is not None:
@@ -76,26 +75,23 @@ class API:
 
         def bind_callbacks():
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
-                    if p.kind == 'knob':
-                        p.callbacks['api'] = partial(emit_parameter_update, inst.name, p.name)
+                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
+                    p.callbacks['api'] = partial(emit_parameter_update, inst.name, p.name)
 
         def check_bounds():
             state = {}
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
                 state[inst.name] = {}
-                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
-                    if p.kind == 'knob':
-                        state[inst.name][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
+                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
+                    state[inst.name][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
             return state
 
         def measure_parameters():
             state = {}
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
                 state[inst.name] = {}
-                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
-                    if p.kind == 'knob':
-                        state[inst.name][p.name] = p.get()
+                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
+                    state[inst.name][p.name] = p.get()
             return state
 
         def prepare_initial_state():
@@ -112,11 +108,11 @@ class API:
                 state['measurements'][instrument] = []
                 state['switches'][instrument] = {}
 
-                for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
-                    if p.kind == 'switch':
-                        state['switches'][instrument][p.name] = p.get()
-                    elif p.kind == 'measurement':
-                        state['measurements'][instrument].append(p.name)
+                for p in self.search(Switch, inst.__dict__, return_dict=True).values():
+                    state['switches'][instrument][p.name] = p.get()
+
+                for p in self.search(Measurement, inst.__dict__, return_dict=True).values():
+                    state['measurements'][instrument].append(p.name)
 
                 if len(state['measurements'][instrument]) == 0:
                     del state['measurements'][instrument]
@@ -159,13 +155,13 @@ class API:
         @app.route("/instruments/<instrument>/switches/<parameter>/get", methods=['GET'])
         def get_instrument_switch(instrument, parameter):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Parameter, inst.__dict__, return_dict=True, kind='switch')[parameter]
+            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
             return str(param.get())
 
         @app.route("/instruments/<instrument>/switches/<parameter>/set/<value>", methods=['GET'])
         def set_instrument_switch(instrument, parameter, value):
             inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Parameter, inst.__dict__, return_dict=True, kind='switch')[parameter]
+            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
             param.set(value=='true')
 
             return ''
@@ -198,7 +194,6 @@ class API:
                     if isclass(inst):
                         names.append(a)
             names.remove('Algorithm')
-
             return json.dumps(names)
 
         @app.route('/optimistic/algorithms/<algorithm>/parameters')
@@ -206,7 +201,6 @@ class API:
             module = import_module('optimistic.algorithms')
             inst = getattr(module, algorithm)()
             parameters = self.search(Parameter, inst.__dict__)
-
             d = {}
             for p in parameters:
                 d[p.name] = p.value
