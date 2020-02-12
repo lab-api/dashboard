@@ -6,9 +6,11 @@ import optimization from '../features/optimization.js'
 import bounds from '../features/bounds.js'
 import instruments from '../features/instruments.js'
 import measurements from '../features/measurements.js'
+import alert from '../features/alert.js'
+import ui from '../features/ui.js'
 
 import { combineReducers } from 'redux'
 
-const reducer = combineReducers({parameters, checked, switches, inputs, optimization, bounds, instruments, measurements})
+const reducer = combineReducers({ui, alert, parameters, checked, switches, inputs, optimization, bounds, instruments, measurements})
 
 export default reducer

@@ -1,55 +1,59 @@
-import React from 'react';
-import Input from '@material-ui/core/Input';
+import React from 'react'
 import TextField from '@material-ui/core/TextField';
-import PropTypes from 'prop-types';
+import * as actions from '../reducers/actions.js'
+import { connect } from 'react-redux'
 
-export default function ValidatedInput({onChange, value, min, max}) {
-  // An input which displays the error state if text is outside of passed bounds
-  // or is not finite
-  const [error, setError] = React.useState(false)
-  const [errorText, setErrorText] = React.useState(' ')
+function StoredInput({defaultValue, id, ui, dispatch, min, max, instrument, parameter}) {
 
-  React.useEffect(()=>validate(value))
-
-  function validate(value) {
-    // Validate the input value to set the error state of the display,
-    // then pass an error bool into the onChange callback.
-    // const newError = value < min || value > max || !isFinite(value)
-    // console.log(value, typeof(value))
-    let newError = true
-    value = parseFloat(value)
-
-    if (value < min) {
-      setErrorText('Too low')
-    }
-    else if (value > max) {
-      setErrorText('Too high')
-    }
-    else if (!isFinite(value)) {
-      setErrorText('Invalid value')
-    }
-    else {
-      newError = false
-      setErrorText(' ')
-    }
-    setError(newError)
-    onChange(value, newError)
+  function patch(field, value) {
+    dispatch(actions.ui.patch(id, field, instrument, parameter, value))
   }
 
+  function update(newValue) {
+    // fully works
+    let stringValue = newValue.toString()
+    if (stringValue.length == 0) {
+      stringValue = defaultValue
+    }
+
+    patch('display', newValue)
+    patch('buffer', parseFloat(stringValue))
+    validate(parseFloat(stringValue))
+  }
+
+  function validate(newValue) {
+    let newError = true
+    let newErrorText = ' '
+    if (newValue < min) { newErrorText = 'Too low.' }
+    else if (newValue > max) { newErrorText = 'Too high.' }
+    else if (!isFinite(newValue)) { newErrorText = 'Invalid value.' }
+    else {
+      newError = false
+      newErrorText = ' '
+    }
+
+    patch('error', newError)
+    patch('errorText', newErrorText)
+  }
+
+  update(ui['display'])
+
   return (
-    <div style={{transform: 'translateY(10px)'}}>
-      <TextField onChange={(event) => validate(event.target.value)}
-             placeholder={value.toString()}
-             error={error}
-             helperText={errorText}
-             />
+    <div>
+      {(ui != null)?   // defer rendering until state is prepared
+      <TextField onChange={(event) => update(event.target.value)}
+                 value={ui['display']}
+                 placeholder={defaultValue.toString()}
+                 error={ui['error']}
+                 helperText={ui['errorText']}
+                 />: null
+               }
     </div>
   )
 }
 
-ValidatedInput.propTypes = {
-  onChange: PropTypes.func,
-  value: PropTypes.number.isRequired,
-  min: PropTypes.number.isRequired,
-  max: PropTypes.number.isRequired
+function mapStateToProps(state, ownProps){
+  return {ui: state['ui'][ownProps.id][ownProps.instrument][ownProps.parameter]}
 }
+
+export default connect(mapStateToProps)(StoredInput)

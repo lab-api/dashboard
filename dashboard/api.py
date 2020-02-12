@@ -5,7 +5,6 @@ import importlib, inspect
 from parametric import Parameter, Attribute, Instrument
 import attr
 from threading import Thread
-
 from optimistic.algorithms import *
 
 class API:
@@ -68,9 +67,9 @@ class API:
         app = Flask(__name__)
 
         def prepare_initial_state():
-            state = {'bounds': {},
+            state = {'alert': {'open': False, 'severity': 'error', 'text': ''},
+                     'bounds': {},
                      'checked': {},
-                     'inputs': {},
                      'instruments': [],
                      'measurements': {},
                      'parameters': {},
@@ -80,26 +79,23 @@ class API:
                                      'settings': {},
                                      'instrument': '',
                                      'objective': '',
-                                     'parameters': {},
-                                     'bounds': {}}
+                                     'parameters': {}}
 
             for inst in self.search(Instrument, self.namespace, return_dict=True).values():
                 instrument = inst.name
                 state['bounds'][instrument] = {}
                 state['checked'][instrument] = []
-                state['inputs'][instrument] = {}
                 state['instruments'].append(instrument)
                 state['measurements'][instrument] = []
                 state['parameters'][instrument] = {}
                 state['switches'][instrument] = {}
-
                 state['optimization']['parameters'][instrument] = []
 
                 for p in self.search(Parameter, inst.__dict__, return_dict=True).values():
                     if p.kind == 'knob':
                         state['bounds'][instrument][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
-                        state['inputs'][instrument][p.name] = ''
                         state['parameters'][instrument][p.name] = p.get()
+
                     elif p.kind == 'switch':
                         state['switches'][instrument][p.name] = p.get()
                     if p.kind == 'measurement':
@@ -107,7 +103,6 @@ class API:
 
                 if len(state['measurements'][instrument]) == 0:
                     del state['measurements'][instrument]
-                state['optimization']['bounds'] = state['bounds']
             return state
 
         @app.route("/")

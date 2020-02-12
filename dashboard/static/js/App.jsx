@@ -8,6 +8,7 @@ import SpeedDial from './SpeedDial.jsx'
 import OptimizerDrawer from './optimistic/OptimizerDrawer.jsx'
 import ResultsDrawer from './optimistic/ResultsDrawer.jsx'
 import ResultSnackbar from './optimistic/ResultSnackbar.jsx'
+import AlertSnackbar from './AlertSnackbar.jsx'
 import { get } from './utilities.js'
 
 // problem: using a single state to define the open drawer causes all drawers to re-render each time one is changed
@@ -76,7 +77,7 @@ export default function App(props){
 
     </main>
     <SpeedDial setOpenDrawer={setOpenDrawer}/>
-
+    <AlertSnackbar/>
     <ResultSnackbar name={snackbarName} setName={setSnackbarName} open={snackbarOpen} setOpen={setSnackbarOpen} loadDataset={loadDataset}/>
     </ThemeProvider>
     </div>

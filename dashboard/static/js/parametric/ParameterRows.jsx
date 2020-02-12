@@ -5,16 +5,16 @@ import TableRow from "@material-ui/core/TableRow";
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import Checkbox from "@material-ui/core/Checkbox";
-import Input from '@material-ui/core/Input';
+import ValidatedInput from '../components/ValidatedInput.jsx'
 
 function ParameterRows(props) {
   const handleClick = (event, name) => {
     props.dispatch(actions.checked.toggle(props.instrument, name))
   };
-
-  function handleUserInput(instrument, parameter, value) {
+  function handleUserInput(instrument, parameter, value, error) {
     props.dispatch(actions.inputs.patch(instrument, parameter, value))
   }
+
   return (
     <React.Fragment>
       {Object.keys(props.parameters).map((parameter, i) => (
@@ -24,11 +24,15 @@ function ParameterRows(props) {
         </TableCell>
         <TableCell>{parameter}</TableCell>
         <TableCell>
-          <Input placeholder={props.parameters[parameter].toString()}
-                 value={props.inputs[parameter]}
-                 id={props.instrument.concat('-', parameter, '-text')}
-                 onChange={(event)=>handleUserInput(props.instrument, parameter, event.target.value)}/>
+          <ValidatedInput defaultValue={props.parameters[parameter]}
+                       id={'parameters'}
+                       instrument={props.instrument}
+                       parameter={parameter}
+                       min={props.bounds[parameter]['min']}
+                       max={props.bounds[parameter]['max']}
+          />
         </TableCell>
+        <TableCell/>
         <TableCell/>
       </TableRow>
     ))}
@@ -39,7 +43,8 @@ function ParameterRows(props) {
 function mapStateToProps(state, ownProps){
   return {parameters: state['parameters'][ownProps['instrument']],
           checked: state['checked'][ownProps['instrument']],
-          inputs: state['inputs'][ownProps['instrument']]
+          inputs: state['inputs'][ownProps['instrument']],
+          bounds: state['bounds'][ownProps['instrument']]
         }
 }
 

@@ -19,6 +19,7 @@ import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import InstrumentRow from './InstrumentRow.jsx'
 import { get } from '../utilities.js'
+import produce from 'immer'
 
 function DataTable(props) {
   const [expanded, setExpanded] = React.useState([])
@@ -31,17 +32,19 @@ function DataTable(props) {
   function send() {
     for (var instrument in props.checked) {
       for (var i in props.checked[instrument]) {
-        const instrument_name = instrument
         const name = props.checked[instrument][i]
 
-        const text = props.inputs[instrument][name]
-        if (text == '') {
-          text = props.parameters[instrument][name]
+        if (props.ui['parameters'][instrument][name]['error']) {
+          const min = props.bounds[instrument][name]['min']
+          const max = props.bounds[instrument][name]['max']
+          const full_name = instrument + ' ' + name
+          const bounds_string = `[${min}, ${max}]`
+          const alert = 'ERROR: Valid bounds for ' + full_name + ' are ' + bounds_string + "."
+          props.dispatch(actions.alert.show(alert, 'error'))
+          return
         }
-
-        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/set/', text)
-        props.dispatch(actions.parameters.patch(instrument_name, name, parseFloat(text)))
-        props.dispatch(actions.inputs.patch(instrument_name, name, ''))
+        const value = props.ui['parameters'][instrument][name]['buffer']
+        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/set/', value)
 
         get(url)
       }
@@ -51,7 +54,7 @@ function DataTable(props) {
 
   function updateParameter(instrument, name, value) {
     props.dispatch(actions.parameters.patch(instrument, name, parseFloat(value)))
-    props.dispatch(actions.inputs.patch(instrument, name, ''))
+    props.dispatch(actions.ui.patch('parameters', 'display', instrument, name, ''))
   }
 
   function refresh() {
@@ -119,7 +122,10 @@ function DataTable(props) {
         </TableHead>
         <TableBody>
           {props.instruments.map((instrument, i) => (
-            <InstrumentRow key={instrument} instrument={instrument} expanded={expanded} setExpanded={setExpanded}/>
+            <InstrumentRow key={instrument}
+                           instrument={instrument}
+                           expanded={expanded}
+                           setExpanded={setExpanded}/>
           ))}
         </TableBody>
         </Table>
@@ -131,6 +137,12 @@ function DataTable(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {instruments: state['instruments'], parameters: state['parameters'], checked: state['checked'], inputs: state['inputs']}
+  return {instruments: state['instruments'],
+          parameters: state['parameters'],
+          checked: state['checked'],
+          inputs: state['inputs'],
+          bounds: state['bounds'],
+          alert: state['alert'],
+          ui: state['ui']}
 }
 export default connect(mapStateToProps)(DataTable)

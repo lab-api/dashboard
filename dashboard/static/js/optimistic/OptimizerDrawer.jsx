@@ -96,7 +96,4 @@ function OptimizerDrawer(props) {
   )
 }
 
-function mapStateToProps(state){
-  return {bounds: state['bounds']}
-}
-export default connect(mapStateToProps)(OptimizerDrawer)
+export default OptimizerDrawer

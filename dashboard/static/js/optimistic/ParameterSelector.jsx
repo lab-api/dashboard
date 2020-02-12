@@ -9,6 +9,7 @@ import Paper from '@material-ui/core/Paper';
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import ValidatedInput from '../components/ValidatedInput.jsx'
+import produce from 'immer'
 
 function ParameterSelector(props) {
   const rows = []
@@ -42,16 +43,22 @@ function ParameterSelector(props) {
               <TableCell align="right">{row.instrument}</TableCell>
               <TableCell align="right">{row.name}</TableCell>
               <TableCell align="right">
-                <ValidatedInput onChange={(value, error)=>handleChange(row.instrument, row.name, 'min', value, error)}
-                                value={parseFloat(props.bounds[row.instrument][row.name]['min'])}
-                                min={props.parameter_bounds[row.instrument][row.name]['min']}
-                                max={props.parameter_bounds[row.instrument][row.name]['max']}/>
+                <ValidatedInput defaultValue={props.parameter_bounds[row.instrument][row.name]['min']}
+                             id={'bounds-min'}
+                             instrument={row.instrument}
+                             parameter={row.name}
+                             min={props.parameter_bounds[row.instrument][row.name]['min']}
+                             max={props.parameter_bounds[row.instrument][row.name]['max']}
+                />
               </TableCell>
               <TableCell align="right">
-                <ValidatedInput onChange={(value, error)=>handleChange(row.instrument, row.name, 'max', value, error)}
-                                value={parseFloat(props.bounds[row.instrument][row.name]['max'])}
-                                min={props.parameter_bounds[row.instrument][row.name]['min']}
-                                max={props.parameter_bounds[row.instrument][row.name]['max']}/>
+              <ValidatedInput defaultValue={props.parameter_bounds[row.instrument][row.name]['max']}
+                           id={'bounds-max'}
+                           instrument={row.instrument}
+                           parameter={row.name}
+                           min={props.parameter_bounds[row.instrument][row.name]['min']}
+                           max={props.parameter_bounds[row.instrument][row.name]['max']}
+              />
               </TableCell>
             </TableRow>
           ))}
