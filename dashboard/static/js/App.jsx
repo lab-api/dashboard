@@ -46,9 +46,8 @@ export default function App(props){
   const [id, setId] = React.useState('')
 
   props.socket.on('parameter', (data) => {
-    props.dispatch(actions.parameters.patch(data.instrument, data.parameter, data.value))
-    props.dispatch(actions.ui.patch('parameters', 'display', data.instrument, data.parameter, ''))
-
+    props.dispatch(actions.knobs.update(data.id, data.value))
+    props.dispatch(actions.ui.patch('knobs', data.id, 'display', ''))
   })
 
   function closeDrawers() {

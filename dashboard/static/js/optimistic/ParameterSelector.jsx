@@ -14,17 +14,18 @@ import produce from 'immer'
 function ParameterSelector(props) {
   const rows = []
 
-  for (var instrument in props.checked) {
-      for (var i in props.checked[instrument]) {
-        const name = props.checked[instrument][i]
-        rows.push({name: name, instrument: instrument})
-      }
+  for (var i in props.checked) {
+    const id = props.checked[i]
+    const name = props.knobs[id].name
+    const instrument = props.knobs[id].instrument
+    const instrument_name = props.instruments[instrument].name
+    rows.push({name: name, instrument: instrument_name, id: id})
+
   }
 
-  function handleChange(instrument, name, index, value, error) {
-    props.dispatch(actions.ui.optimization.bounds.patch(instrument, name, index, value))
+  function defaultValue(id) {
+    return props.knobs[id]
   }
-
   return (
     <TableContainer component={Paper}>
       <Table aria-label="simple table">
@@ -39,25 +40,27 @@ function ParameterSelector(props) {
         </TableHead>
         <TableBody>
           {rows.map(row => (
-            <TableRow key={row.instrument+'-'+row.name}>
+            <TableRow key={row.id}>
               <TableCell align="right">{row.instrument}</TableCell>
               <TableCell align="right">{row.name}</TableCell>
               <TableCell align="right">
-                <ValidatedInput defaultValue={props.parameter_bounds[row.instrument][row.name]['min']}
-                             id={'bounds-min'}
-                             instrument={row.instrument}
-                             parameter={row.name}
-                             min={props.parameter_bounds[row.instrument][row.name]['min']}
-                             max={props.parameter_bounds[row.instrument][row.name]['max']}
-                />
-              </TableCell>
-              <TableCell align="right">
-              <ValidatedInput defaultValue={props.parameter_bounds[row.instrument][row.name]['max']}
-                           id={'bounds-max'}
+              <ValidatedInput defaultValue={props.knobs[row.id].min}
+                           feature={'bounds-min'}
                            instrument={row.instrument}
                            parameter={row.name}
-                           min={props.parameter_bounds[row.instrument][row.name]['min']}
-                           max={props.parameter_bounds[row.instrument][row.name]['max']}
+                           min={props.knobs[row.id].min}
+                           max={props.knobs[row.id].max}
+                           knobID={row.id}
+              />
+              </TableCell>
+              <TableCell align="right">
+              <ValidatedInput defaultValue={props.knobs[row.id].max}
+                           feature={'bounds-max'}
+                           instrument={row.instrument}
+                           parameter={row.name}
+                           min={props.knobs[row.id].min}
+                           max={props.knobs[row.id].max}
+                           knobID={row.id}
               />
               </TableCell>
             </TableRow>
@@ -70,7 +73,7 @@ function ParameterSelector(props) {
 
 function mapStateToProps(state){
   return {checked: state['checked'],
-          bounds: state['ui']['optimization']['bounds'],
-          parameter_bounds: state['bounds']}
+          knobs: state['knobs'],
+          instruments: state['instruments']}
 }
 export default connect(mapStateToProps)(ParameterSelector)

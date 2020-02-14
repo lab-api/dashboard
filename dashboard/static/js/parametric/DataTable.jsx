@@ -25,62 +25,57 @@ function DataTable(props) {
   const [expanded, setExpanded] = React.useState([])
 
   function deselectAll() {
-    for (var instrument in props.parameters) {
-      props.dispatch(actions.checked.patch(instrument, Object.keys(props.parameters[instrument]), false))
-    }
+    props.dispatch(actions.checked.uncheck(props.checked))
   }
+
   function send() {
-    for (var instrument in props.checked) {
-      for (var i in props.checked[instrument]) {
-        const name = props.checked[instrument][i]
+    for (var i in props.checked) {
+      const id = props.checked[i]
 
-        if (props.ui['parameters'][instrument][name]['error']) {
-          const min = props.bounds[instrument][name]['min']
-          const max = props.bounds[instrument][name]['max']
-          const full_name = instrument + ' ' + name
-          const bounds_string = `[${min}, ${max}]`
-          const alert = 'ERROR: Valid bounds for ' + full_name + ' are ' + bounds_string + "."
-          props.dispatch(actions.alert.show(alert, 'error'))
-          return
-        }
-        const value = props.ui['parameters'][instrument][name]['buffer']
-        const url = '/instruments/'.concat(instrument, '/parameters/', name, '/set/', value)
+      if (props.ui['knobs'][id]['error']) {
+        const parameter = props.knobs[id]
+        const instrument_name = props.instruments[parameter.instrument].name
+        const full_name = instrument_name + ' ' + parameter.name
+        const bounds_string = `[${parameter.min}, ${parameter.max}]`
+        const alert = 'ERROR: Valid bounds for ' + full_name + ' are ' + bounds_string + "."
+        props.dispatch(actions.alert.show(alert, 'error'))
 
-        get(url)
+        return
       }
+      const value = props.ui['knobs'][id]['buffer']
+      const url = '/knobs/' + id + '/set/' + value
+      get(url)
     }
     deselectAll()
   }
 
-  function updateParameter(instrument, name, value) {
-    props.dispatch(actions.parameters.patch(instrument, name, parseFloat(value)))
-    props.dispatch(actions.ui.patch('parameters', 'display', instrument, name, ''))
-  }
-
-  function refresh(dispatch, instrument, name) {
-    const url = '/instruments/'.concat(instrument, '/parameters/', name, '/get')
-    get(url, (value) => {
-      dispatch(actions.parameters.patch(instrument, name, parseFloat(value)))
-    })
-  }
-
   function refreshChecked() {
-    for (var instrument in props.checked) {
-      for (var i in props.checked[instrument]) {
-        const name = props.checked[instrument][i]
-        refresh(props.dispatch, instrument, name)
-        props.dispatch(actions.ui.patch('parameters', 'display', instrument, name, ''))
-      }
+    for (var i in props.checked) {
+      const id = props.checked[i]
+      const url = '/knobs/' + id + '/get'
+      get(url, (value) => {
+        props.dispatch(actions.knobs.update(id, value))
+        props.dispatch(actions.ui.patch('knobs', id, 'display', ''))
+      })
+
     }
     deselectAll()
   }
 
   function toggleExpandAll() {
-    if (expanded.length < props.instruments.length) {
-      setExpanded(props.instruments)
+    const instrument_names = Object.keys(props.instruments)
+    if (expanded.length < instrument_names.length) {
+      setExpanded(instrument_names)
     }
     else {
       setExpanded([])
+    }
+  }
+
+  const topLevelInstruments = []
+  for (var id in props.instruments) {
+    if (props.instruments[id]['parent'] == null) {
+      topLevelInstruments.push(id)
     }
   }
   return (
@@ -127,11 +122,13 @@ function DataTable(props) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {props.instruments.map((instrument, i) => (
-            <InstrumentRow key={instrument}
-                           instrument={instrument}
+          {topLevelInstruments.map((id, i) => (
+            <InstrumentRow key={props.instruments[id]['name']}
                            expanded={expanded}
-                           setExpanded={setExpanded}/>
+                           setExpanded={setExpanded}
+                           instrumentID={id}
+                           backgroundColor={"#D3D3D3"}
+                           />
           ))}
         </TableBody>
         </Table>
@@ -144,10 +141,9 @@ function DataTable(props) {
 
 function mapStateToProps(state, ownProps){
   return {instruments: state['instruments'],
-          parameters: state['parameters'],
           checked: state['checked'],
-          bounds: state['bounds'],
-          alert: state['alert'],
-          ui: state['ui']}
+          knobs: state['knobs'],
+          ui: state['ui'],
+          alert: state['alert']}
 }
 export default connect(mapStateToProps)(DataTable)

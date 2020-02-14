@@ -11,7 +11,7 @@ from flask_socketio import SocketIO
 from functools import partial
 
 class API:
-    def __init__(self, namespace, addr='127.0.0.1', port=54031, debug=False):
+    def __init__(self, namespace, addr='127.0.0.1', port=8000, debug=False):
         self.addr = addr
         self.port = port
         self.namespace = namespace
@@ -68,117 +68,109 @@ class API:
         app = Flask(__name__)
         socketio = SocketIO(app)
 
-        def emit_parameter_update(instrument, parameter, value):
-            socketio.emit('parameter', {'instrument': instrument,
-                                        'parameter': parameter,
+        def emit_parameter_update(id, value):
+            socketio.emit('parameter', {'id': id,
                                         'value': value})
 
-        def bind_callbacks():
-            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
-                    p.callbacks['api'] = partial(emit_parameter_update, inst.name, p.name)
+        def prepare_state(state=None, namespace=None, parent_id=None, return_handle=False):
+            ''' Recursively search through instruments and prepare a flattened state
+                First pass: look for parameters in the current namespace and add them to the state;
+                            then, iterate through all instruments
+                Second pass: look for parameters in each instrument namespace, then iterate through all instruments '''
+            if namespace is None:
+                namespace = self.namespace
+            if state is None:
+                state = {'knobs': {}, 'switches': {}, 'measurements': {}, 'instruments': {}}
 
-        def check_bounds():
-            state = {}
-            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                state[inst.name] = {}
-                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
-                    state[inst.name][p.name] = {'min': p.bounds[0], 'max': p.bounds[1]}
-            return state
+            ''' Search parameters within namespace '''
+            for child in self.search(Parameter, namespace, return_dict=True).values():
+                if isinstance(child, Knob):
+                    id = str(len(state['knobs']))
+                    entry = {'name': child.name,
+                             'value': child.get(),
+                             'instrument': parent_id,
+                             'min': child.bounds[0],
+                             'max': child.bounds[1]}
+                    if return_handle:
+                        entry['handle'] = child
+                    state['knobs'][id] = entry
+                    state['instruments'][parent_id]['knobs'].append(id)
+                    child.callbacks['api'] = partial(emit_parameter_update, id)
 
-        def measure_parameters():
-            state = {}
-            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                state[inst.name] = {}
-                for p in self.search(Knob, inst.__dict__, return_dict=True).values():
-                    state[inst.name][p.name] = p.get()
-            return state
+                elif isinstance(child, Switch):
+                    id = str(len(state['switches']))
+                    entry = {'name': child.name, 'value': child.get(), 'instrument': parent_id}
+                    if return_handle:
+                        entry['handle'] = child
+                    state['switches'][id] = entry
+                    state['instruments'][parent_id]['switches'].append(id)
 
-        def prepare_initial_state():
-            state = {'bounds': {},
-                     'instruments': [],
-                     'measurements': {},
-                     'parameters': {},
-                     'switches': {}
-                     }
+                elif isinstance(child, Measurement):
+                    id = str(len(state['measurements']))
+                    entry = {'name': child.name, 'instrument': parent_id}
+                    if return_handle:
+                        entry['handle'] = child
+                    state['measurements'][id] = entry
+                    state['instruments'][parent_id]['measurements'].append(id)
 
-            for inst in self.search(Instrument, self.namespace, return_dict=True).values():
-                instrument = inst.name
-                state['instruments'].append(instrument)
-                state['measurements'][instrument] = []
-                state['switches'][instrument] = {}
 
-                for p in self.search(Switch, inst.__dict__, return_dict=True).values():
-                    state['switches'][instrument][p.name] = p.get()
+            ''' Search instruments '''
+            for instrument in self.search(Instrument, namespace, return_dict=True).values():
+                instrument_entry = {'name': instrument.name, 'children': [], 'switches': [], 'knobs': [], 'measurements': [], 'parent': None}
+                instrument_id = str(len(state['instruments']))
 
-                for p in self.search(Measurement, inst.__dict__, return_dict=True).values():
-                    state['measurements'][instrument].append(p.name)
+                if parent_id is not None:
+                    state['instruments'][parent_id]['children'].append(instrument_id)
+                    instrument_entry['parent'] = parent_id
+                if return_handle:
+                    instrument_entry['handle'] = instrument
+                state['instruments'][instrument_id] = instrument_entry
 
-                if len(state['measurements'][instrument]) == 0:
-                    del state['measurements'][instrument]
-
-            state['parameters'] = measure_parameters()
-            state['bounds'] = check_bounds()
+                state = prepare_state(state,
+                                      namespace = instrument.__dict__,
+                                      parent_id = instrument_id,
+                                      return_handle = return_handle)
             return state
 
         @app.route("/")
         def hello():
-            state = prepare_initial_state()
-            bind_callbacks()
-            return render_template('index.html', state=state)
+            frontend_state = prepare_state()
+            self.state = prepare_state(return_handle=True)
+            return render_template('index.html', state=frontend_state)
 
-        @app.route("/parameters")
-        def get_parameter_values():
-            return json.dumps(measure_parameters())
+        @app.route("/switches/<id>/set/<value>")
+        def set_switch(id, value):
+            parameter = self.state['switches'][id]['handle']
+            parameter.set(bool(int(value)))
+            print('switch', id, 'set to', parameter.get())
+            return ''
+
+        @app.route("/switches/<id>/get")
+        def get_switch(id):
+            parameter = self.state['switches'][id]['handle']
+            return json.dumps(int(parameter.get()))
+
+        @app.route("/knobs/<id>/get")
+        def get_knob(id):
+            parameter = self.state['knobs'][id]['handle']
+            return json.dumps(parameter.get())
+
+        @app.route("/knobs/<id>/set/<value>")
+        def set_knob(id, value):
+            parameter = self.state['knobs'][id]['handle']
+            parameter.set(float(value))
+
+            return ''
+
+        @app.route("/measurements/<id>/get")
+        def get_measurement(id):
+            parameter = self.state['measurements'][id]['handle']
+            return json.dumps(parameter.get())
 
         @app.route('/shutdown', methods=['GET'])
         def shutdown():
             self.shutdown_server()
             return 'Server shutting down...'
-
-
-        ''' Instrument endpoints '''
-        @app.route("/instruments/<instrument>/parameters/<parameter>/get", methods=['GET'])
-        def get_instrument_parameter(instrument, parameter):
-            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Parameter, inst.__dict__, return_dict=True)[parameter]
-            return str(param.get())
-
-        @app.route("/instruments/<instrument>/parameters/<parameter>/set/<value>", methods=['GET'])
-        def set_instrument_parameter(instrument, parameter, value):
-            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Parameter, inst.__dict__, return_dict=True)[parameter]
-            param.set(float(value))
-
-            return ''
-
-        @app.route("/instruments/<instrument>/switches/<parameter>/get", methods=['GET'])
-        def get_instrument_switch(instrument, parameter):
-            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
-            return str(param.get())
-
-        @app.route("/instruments/<instrument>/switches/<parameter>/set/<value>", methods=['GET'])
-        def set_instrument_switch(instrument, parameter, value):
-            inst = self.search(Instrument, self.namespace, return_dict=True)[instrument]
-            param = self.search(Switch, inst.__dict__, return_dict=True)[parameter]
-            param.set(value=='true')
-
-            return ''
-
-        ''' Parameter endpoints '''
-        @app.route("/parameters/<parameter>/set/<value>", methods=['GET'])
-        def set_parameter(parameter, value):
-            param = self.search(Parameter, self.namespace, return_dict=True)[parameter]
-            param.set(float(value))
-
-            return ''
-
-        @app.route("/parameters/<parameter>/get", methods=['GET'])
-        def get_parameter(parameter):
-            param = self.search(Parameter, self.namespace, return_dict=True)[parameter]
-            return str(param.get())
-
 
         ''' Optimistic endpoints '''
         from importlib import import_module
@@ -224,16 +216,15 @@ class API:
             print(submission)
             module = import_module('optimistic.algorithms')
             algo_class = getattr(module, submission['algorithm'])
-            instrument = self.search(Instrument, self.namespace, name=submission['instrument'])
-            objective = self.search(Parameter, instrument.__dict__, name=submission['objective'])
+
+            objective = self.state['measurements'][submission['objective']]['handle']
             algo = algo_class(objective, **submission['settings'])
-            for instrument in submission['parameters']:
-                instance = self.search(Instrument, self.namespace, name=instrument)
-                for p in submission['parameters'][instrument]:
-                    parameter = self.search(Parameter, instance.__dict__, name=p)
-                    bounds = submission['bounds'][instrument][p]
-                    bounds = (bounds['min'], bounds['max'])
-                    algo.add_parameter(parameter, bounds=bounds)
+
+            for id in submission['parameters']:
+                parameter = self.state['knobs'][id]['handle']
+                bounds = submission['bounds'][id]
+                bounds = (bounds['min'], bounds['max'])
+                algo.add_parameter(parameter, bounds=bounds)
 
             algo.run()
             print(algo.X, algo.y)

@@ -4,13 +4,13 @@ export default function reducer(state={}, action) {
   switch(action.type) {
     default : return state;
 
-    case 'switches/update':
+    case 'knobs/update':
       return produce(state, draft => {
-        draft[action.id]['value'] = Boolean(action.value)
+        draft[action.id].value = action.value
       })
     }
 }
 
 export function update(id, value) {
-  return {type: 'switches/update', id: id, value: value}
+  return {type: 'knobs/update', id: id, value: value}
 }

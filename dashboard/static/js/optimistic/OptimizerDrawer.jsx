@@ -1,5 +1,4 @@
 import React from 'react'
-import MeasurementCard from "./MeasurementCard.jsx"
 import ParameterCard from "./ParameterCard.jsx"
 import OptimizerCard from "./OptimizerCard.jsx"
 import Submitter from "./Submitter.jsx"
@@ -73,9 +72,8 @@ function OptimizerDrawer(props) {
         textColor="primary"
         aria-label="scrollable force tabs example"
       >
-        <ThemeTab label="Knobs"  {...a11yProps(0)}  />
-        <ThemeTab label="Measurement"  {...a11yProps(1)}  />
-        <ThemeTab label="Optimizer"  {...a11yProps(2)}  />
+        <ThemeTab label="Targets"  {...a11yProps(0)}  />
+        <ThemeTab label="Optimizer"  {...a11yProps(1)}  />
       </Tabs>
 
       <TabPanel value={value} index={0}>
@@ -83,10 +81,6 @@ function OptimizerDrawer(props) {
       </TabPanel>
 
       <TabPanel value={value} index={1}>
-        <MeasurementCard/>
-      </TabPanel>
-
-      <TabPanel value={value} index={2}>
         <OptimizerCard/>
       </TabPanel>
 

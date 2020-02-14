@@ -3,10 +3,10 @@ import TextField from '@material-ui/core/TextField';
 import * as actions from '../reducers/actions.js'
 import { connect } from 'react-redux'
 
-function StoredInput({defaultValue, id, ui, dispatch, min, max, instrument, parameter}) {
+function ValidatedInput({defaultValue, feature, ui, dispatch, min, max, instrument, parameter, knobID}) {
 
   function patch(field, value) {
-    dispatch(actions.ui.patch(id, field, instrument, parameter, value))
+    dispatch(actions.ui.patch(feature, knobID, field, value))
   }
 
   function update(newValue) {
@@ -37,7 +37,6 @@ function StoredInput({defaultValue, id, ui, dispatch, min, max, instrument, para
   }
 
   update(ui['display'])
-
   return (
     <div>
       {(ui != null)?   // defer rendering until state is prepared
@@ -53,7 +52,7 @@ function StoredInput({defaultValue, id, ui, dispatch, min, max, instrument, para
 }
 
 function mapStateToProps(state, ownProps){
-  return {ui: state['ui'][ownProps.id][ownProps.instrument][ownProps.parameter]}
+  return {ui: state['ui'][ownProps.feature][ownProps.knobID]}
 }
 
-export default connect(mapStateToProps)(StoredInput)
+export default connect(mapStateToProps)(ValidatedInput)

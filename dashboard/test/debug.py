@@ -23,6 +23,13 @@ class Coils(Instrument):
         self.offset = Knob('offset', 3, bounds=(-10, 10))
         self.powered = Switch('powered', False)
 
+class GreenController(Instrument):
+    def __init__(self):
+        super().__init__(name='556 controller')
+        self.enabled = Switch('enabled', True)
+        self.trapping = IntensityServo(name='trapping')
+        self.pump = IntensityServo(name='optical pumping')
+
 class IntensityServo(Instrument):
     def __init__(self, name='IntensityServo'):
         super().__init__(name=name)
@@ -40,7 +47,7 @@ class PMT(Instrument):
 
 inst = TAPro(name='Laser')
 inst2 = Coils()
-inst3 = IntensityServo()
+green = GreenController()
 pmt = PMT()
 
 api = API(globals(), debug=True, port=8000)

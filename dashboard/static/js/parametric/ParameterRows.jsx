@@ -6,30 +6,78 @@ import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import Checkbox from "@material-ui/core/Checkbox";
 import ValidatedInput from '../components/ValidatedInput.jsx'
+import IconButton from '@material-ui/core/IconButton';
+import CachedIcon from "@material-ui/icons/Cached";
+import SendIcon from "@material-ui/icons/Send";
+import { get } from '../utilities.js'
 
 function ParameterRows(props) {
-  const handleClick = (event, name) => {
-    props.dispatch(actions.checked.toggle(props.instrument, name))
+  const handleClick = (id) => {
+    props.dispatch(actions.checked.toggle(id))
   };
+  const knobIDs = props.instruments[props.instrumentID].knobs
+  const [buttonsVisible, setButtonsVisible] = React.useState('')
+
+  function send(event, id) {
+    event.stopPropagation()
+    if (props.ui[id]['error']) {
+      const parameter = props.knobs[id]
+      const instrument_name = props.instruments[parameter.instrument].name
+      const full_name = instrument_name + ' ' + parameter.name
+      const bounds_string = `[${parameter.min}, ${parameter.max}]`
+      const alert = 'ERROR: Valid bounds for ' + full_name + ' are ' + bounds_string + "."
+      props.dispatch(actions.alert.show(alert, 'error'))
+
+      return
+    }
+    const value = props.ui[id]['buffer']
+    const url = '/knobs/' + id + '/set/' + value
+    get(url)
+    }
+
+    function refresh(event, id) {
+        event.stopPropagation()
+        const url = '/knobs/' + id + '/get'
+        get(url, (value) => {
+          props.dispatch(actions.knobs.update(id, value))
+          props.dispatch(actions.ui.patch('knobs', id, 'display', ''))
+        })
+    }
 
   return (
     <React.Fragment>
-      {Object.keys(props.parameters).map((parameter, i) => (
-      <TableRow key={parameter} hover onClick={event => handleClick(event, parameter)}>
+      {knobIDs.map((id, i) => (
+      <TableRow key={id} hover
+                         onClick={event => handleClick(id)}
+                         onMouseEnter={() => setButtonsVisible(id)}
+                         onMouseLeave={() => setButtonsVisible('')}
+                         >
         <TableCell padding="checkbox">
-          <Checkbox checked={props.checked.includes(parameter)}/>
+          <Checkbox checked={props.checked.includes(id)}/>
         </TableCell>
-        <TableCell>{parameter}</TableCell>
+        <TableCell>{props.knobs[id].name}</TableCell>
         <TableCell>
-          <ValidatedInput defaultValue={props.parameters[parameter]}
-                       id={'parameters'}
-                       instrument={props.instrument}
-                       parameter={parameter}
-                       min={props.bounds[parameter]['min']}
-                       max={props.bounds[parameter]['max']}
+          <ValidatedInput defaultValue={props.knobs[id].value}
+                       feature={'knobs'}
+                       instrument={props.instruments[props.instrumentID].name}
+                       parameter={props.knobs[id].name}
+                       min={props.knobs[id].min}
+                       max={props.knobs[id].max}
+                       knobID={id}
           />
         </TableCell>
-        <TableCell/>
+        <TableCell align="left" padding="checkbox">
+          {buttonsVisible == id? (
+          <div className="row">
+          <IconButton aria-label="update" onClick={(event) => send(event, id)}>
+            <SendIcon />
+          </IconButton>
+          <IconButton aria-label="refresh" onClick={(event) => refresh(event, id)}>
+            <CachedIcon />
+          </IconButton>
+          </div>
+        ): null }
+        </TableCell>
         <TableCell/>
       </TableRow>
     ))}
@@ -38,9 +86,10 @@ function ParameterRows(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {parameters: state['parameters'][ownProps['instrument']],
-          checked: state['checked'][ownProps['instrument']],
-          bounds: state['bounds'][ownProps['instrument']]
+  return {checked: state['checked'],
+          knobs: state['knobs'],
+          instruments: state['instruments'],
+          ui: state['ui']['knobs']
         }
 }
 

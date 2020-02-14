@@ -5,60 +5,34 @@ import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 import { get, post } from '../utilities.js'
 import produce from 'immer'
-import {mergeDeep} from 'immutable'
-
-function checkError(ui, key) {
-  // iterate through all UI components for a given key and check whether any
-  // are in the error state
-  let error = false
-  for (var instrument in ui[key]) {
-    for (var parameter in ui[key][instrument]) {
-      error = error || ui[key][instrument][parameter]['error']
-    }
-  }
-  return error
-}
-
-function bufferToDict(ui, key, newKey) {
-  const dict = {}
-  for (var instrument in ui[key]) {
-    dict[instrument] = {}
-    for (var parameter in ui[key][instrument]) {
-      dict[instrument][parameter] = {[newKey]: ui[key][instrument][parameter]['buffer']}
-    }
-  }
-  return dict
-}
-
 
 function Submitter(props) {
   React.useEffect(() => {props.dispatch(actions.ui.optimization.put('parameters', props.checked))})  // keep optimization parameters linked to checked
   var complete = true
   const bounds = {}
-  var parameters_complete = false
-  for (var instrument in props.checked){
-    bounds[instrument] = {}
-    if (props.checked[instrument].length > 0) {
-      parameters_complete = true
-    }
+  var parameters_complete = (props.checked.length > 0)
 
-    for (var i in props.checked[instrument]) {
-      var parameter = props.checked[instrument][i]
-      const min = props.ui['bounds-min'][instrument][parameter]['buffer']
-      const max = props.ui['bounds-max'][instrument][parameter]['buffer']
-      bounds[instrument][parameter] = {'min': min, 'max': max}
-    }
+  for (var i in props.checked) {
+    const id = props.checked[i]
+    const min = props.ui['bounds-min'][id]['buffer']
+    const max = props.ui['bounds-max'][id]['buffer']
+    bounds[id] = {'min': min, 'max': max}
   }
 
-  const min_bounds = bufferToDict(props.ui, 'bounds-min', 'min')
-  const max_bounds = bufferToDict(props.ui, 'bounds-max', 'max')
-  const merged = mergeDeep(min_bounds, max_bounds)
-  complete &= !checkError(props.ui, 'bounds-min')
-  complete &= !checkError(props.ui, 'bounds-max')
+  function checkError(feature) {
+    let error = false
+    for (var i in props.checked) {
+      const id = props.checked[i]
+      error = error || props.ui[feature][id]['error']
+    }
+    return error
+  }
+
+  complete &= !checkError('bounds-min')
+  complete &= !checkError('bounds-max')
   complete &= parameters_complete
   complete &= (props.optimization.algorithm != "")
   complete &= (props.optimization.objective != "")
-  complete &= (props.optimization.instrument != "")
 
   const submission = produce(props.optimization, draft =>{
     draft['bounds'] = bounds
@@ -87,8 +61,7 @@ function Submitter(props) {
 
 function mapStateToProps(state){
   return {checked: state['checked'],
-          optimization: state['ui']['optimization'],
-          bounds: state['bounds'],
-          ui: state['ui']}
+          ui: state['ui'],
+          optimization: state['ui']['optimization']}
 }
 export default connect(mapStateToProps)(Submitter)
