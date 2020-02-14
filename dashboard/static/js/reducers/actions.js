@@ -12,3 +12,6 @@ export {ui}
 
 import * as knobs from '../features/knobs.js'
 export {knobs}
+
+import * as selectors from '../features/selectors.js'
+export {selectors}

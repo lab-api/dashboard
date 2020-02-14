@@ -1,7 +1,7 @@
 ''' A script for running the API in debug mode for front-end development '''
 from dashboard import API
 from parametric import Instrument
-from parametric.factory import Knob, Switch, Measurement
+from parametric.factory import Knob, Switch, Measurement, Selector
 
 class TAPro(Instrument):
     def __init__(self, name='TA Pro'):
@@ -22,6 +22,7 @@ class Coils(Instrument):
         self.gradient = Knob('gradient', 50.2, bounds=(0, 80))
         self.offset = Knob('offset', 3, bounds=(-10, 10))
         self.powered = Switch('powered', False)
+        self.selector = Selector('selector', 0, [0, 1, 2])
 
 class GreenController(Instrument):
     def __init__(self):

@@ -3,7 +3,7 @@ import requests
 import json
 import importlib, inspect
 from parametric import Parameter, Instrument
-from parametric.factory import Knob, Switch, Measurement
+from parametric.factory import Knob, Switch, Measurement, Selector
 import attr
 from threading import Thread
 from optimistic.algorithms import *
@@ -80,7 +80,7 @@ class API:
             if namespace is None:
                 namespace = self.namespace
             if state is None:
-                state = {'knobs': {}, 'switches': {}, 'measurements': {}, 'instruments': {}}
+                state = {'knobs': {}, 'switches': {}, 'selectors': {}, 'measurements': {}, 'instruments': {}}
 
             ''' Search parameters within namespace '''
             for child in self.search(Parameter, namespace, return_dict=True).values():
@@ -113,10 +113,26 @@ class API:
                     state['measurements'][id] = entry
                     state['instruments'][parent_id]['measurements'].append(id)
 
+                elif isinstance(child, Selector):
+                    id = str(len(state['selectors']))
+                    entry = {'name': child.name,
+                             'value': child.get(),
+                             'instrument': parent_id,
+                             'options': child.options}
+                    if return_handle:
+                        entry['handle'] = child
+                    state['selectors'][id] = entry
+                    state['instruments'][parent_id]['selectors'].append(id)
 
             ''' Search instruments '''
             for instrument in self.search(Instrument, namespace, return_dict=True).values():
-                instrument_entry = {'name': instrument.name, 'children': [], 'switches': [], 'knobs': [], 'measurements': [], 'parent': None}
+                instrument_entry = {'name': instrument.name,
+                                    'children': [],
+                                    'switches': [],
+                                    'selectors': [],
+                                    'knobs': [],
+                                    'measurements': [],
+                                    'parent': None}
                 instrument_id = str(len(state['instruments']))
 
                 if parent_id is not None:
@@ -137,6 +153,17 @@ class API:
             frontend_state = prepare_state()
             self.state = prepare_state(return_handle=True)
             return render_template('index.html', state=frontend_state)
+
+        @app.route("/selectors/<id>/set/<value>")
+        def set_selector(id, value):
+            parameter = self.state['selectors'][id]['handle']
+            parameter.set(value)
+            return ''
+
+        @app.route("/selectors/<id>/get")
+        def get_selector(id):
+            parameter = self.state['selectors'][id]['handle']
+            return json.dumps(parameter.get())
 
         @app.route("/switches/<id>/set/<value>")
         def set_switch(id, value):

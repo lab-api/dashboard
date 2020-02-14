@@ -13,6 +13,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ParameterRows from './ParameterRows.jsx'
 import MeasurementRows from './MeasurementRows.jsx'
 import SwitchRows from './SwitchRows.jsx'
+import SelectorRows from './SelectorRows.jsx'
 
 import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
@@ -83,6 +84,10 @@ function InstrumentRow(props) {
     </TableRow>
     {props.expanded.includes(props.instrumentID)? (
       <SwitchRows instrumentID={props.instrumentID}/>
+      ): null
+    }
+    {props.expanded.includes(props.instrumentID)? (
+      <SelectorRows instrumentID={props.instrumentID}/>
       ): null
     }
     {props.expanded.includes(props.instrumentID)? (
