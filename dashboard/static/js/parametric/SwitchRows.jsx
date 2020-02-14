@@ -27,9 +27,8 @@ function SwitchRows(props) {
     event.stopPropagation()
     const newState = 1 - props.switches[id].value
     const url = '/switches/' + id + '/set/' +  newState
-    get(url, (value) => {
-      props.dispatch(actions.switches.update(id, newState))
-    })
+    props.dispatch(actions.switches.update(id, newState))
+    get(url)
   }
 
   return (
