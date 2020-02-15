@@ -31,8 +31,7 @@ function DataTable(props) {
   function refreshChecked() {
     for (var i in props.checked) {
       const id = props.checked[i]
-      const url = '/knobs/' + id + '/get'
-      get(url, (value) => {
+      get('/knobs/' + id , (value) => {
         props.dispatch(actions.knobs.update(id, value))
         props.dispatch(actions.ui.patch('knobs', id, 'display', ''))
       })

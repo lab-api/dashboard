@@ -8,7 +8,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ValidatedInput from '../components/ValidatedInput.jsx'
 import IconButton from '@material-ui/core/IconButton';
 import CachedIcon from "@material-ui/icons/Cached";
-import { get } from '../utilities.js'
+import { get, post } from '../utilities.js'
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -19,20 +19,18 @@ function SelectorRows(props) {
   function handleChange(event, id) {
     event.stopPropagation()
     const value = event.target.value
-    const url = '/selectors/' + id + '/set/' +  value
     props.dispatch(actions.selectors.update(id, value))
 
-    get(url)
+    post('/selectors/' + id, {'value': value})
   }
 
   function refresh(event, id) {
       event.stopPropagation()
-      const url = '/selectors/' + id + '/get'
-      get(url, (value) => {
+      get('/selectors/' + id, (value) => {
         props.dispatch(actions.selectors.update(id, value))
       })
   }
-  
+
   return (
     <React.Fragment>
       {knobIDs.map((id, i) => (

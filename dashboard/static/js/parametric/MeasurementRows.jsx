@@ -22,12 +22,11 @@ function MeasurementRows(props) {
 
     }
   }
-  
+
   function measureResult(event, id) {
     event.preventDefault()
     event.stopPropagation()
-    const url = '/measurements/' + id + '/get'
-    get(url, (result) => {
+    get('/measurements/' + id, (result) => {
       const name = props.measurements[id].name
       const successText = 'Measurement of ' + name + ' complete. Result: ' + result
       props.dispatch(actions.alert.show(successText, 'success'))

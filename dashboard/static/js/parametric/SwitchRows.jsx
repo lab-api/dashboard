@@ -8,7 +8,7 @@ import Checkbox from "@material-ui/core/Checkbox";
 import ValidatedInput from '../components/ValidatedInput.jsx'
 import IconButton from '@material-ui/core/IconButton';
 import CachedIcon from "@material-ui/icons/Cached";
-import { get } from '../utilities.js'
+import { get, post } from '../utilities.js'
 import Switch from '@material-ui/core/Switch';
 
 function SwitchRows(props) {
@@ -17,8 +17,7 @@ function SwitchRows(props) {
 
     function refresh(event, id) {
         event.stopPropagation()
-        const url = '/switches/' + id + '/get'
-        get(url, (value) => {
+        get('/switches/' + id, (value) => {
           props.dispatch(actions.switches.update(id, value))
         })
     }
@@ -26,8 +25,8 @@ function SwitchRows(props) {
   function handleToggle(event, id) {
     event.stopPropagation()
     const newState = 1 - props.switches[id].value
-    const url = '/switches/' + id + '/set/' +  newState
     props.dispatch(actions.switches.update(id, newState))
+    post('/switches/' + id, {'value': newState})
     get(url)
   }
 

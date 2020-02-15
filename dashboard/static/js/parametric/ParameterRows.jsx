@@ -9,7 +9,7 @@ import ValidatedInput from '../components/ValidatedInput.jsx'
 import IconButton from '@material-ui/core/IconButton';
 import CachedIcon from "@material-ui/icons/Cached";
 import SendIcon from "@material-ui/icons/Send";
-import { get } from '../utilities.js'
+import { get, post } from '../utilities.js'
 
 function ParameterRows(props) {
   const handleClick = (id) => {
@@ -31,14 +31,12 @@ function ParameterRows(props) {
       return
     }
     const value = props.ui[id]['buffer']
-    const url = '/knobs/' + id + '/set/' + value
-    get(url)
+    post('/knobs/' + id, {'value': value})
     }
 
     function refresh(event, id) {
         event.stopPropagation()
-        const url = '/knobs/' + id + '/get'
-        get(url, (value) => {
+        get('/knobs/' + id, (value) => {
           props.dispatch(actions.knobs.update(id, value))
           props.dispatch(actions.ui.patch('knobs', id, 'display', ''))
         })
