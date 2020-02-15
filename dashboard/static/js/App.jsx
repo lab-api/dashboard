@@ -20,10 +20,11 @@ const theme = createMuiTheme({
 });
 
 const drawerWidth = 500
+const monitorWidth = 500
 const useStyles = makeStyles(theme => ({
   content: {
     padding: theme.spacing(3),
-    marginRight: drawerWidth
+    marginRight: drawerWidth + monitorWidth
   },
   drawer: {
     width: drawerWidth,

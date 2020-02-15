@@ -28,27 +28,6 @@ function DataTable(props) {
     props.dispatch(actions.checked.uncheck(props.checked))
   }
 
-  function send() {
-    for (var i in props.checked) {
-      const id = props.checked[i]
-
-      if (props.ui['knobs'][id]['error']) {
-        const parameter = props.knobs[id]
-        const instrument_name = props.instruments[parameter.instrument].name
-        const full_name = instrument_name + ' ' + parameter.name
-        const bounds_string = `[${parameter.min}, ${parameter.max}]`
-        const alert = 'ERROR: Valid bounds for ' + full_name + ' are ' + bounds_string + "."
-        props.dispatch(actions.alert.show(alert, 'error'))
-
-        return
-      }
-      const value = props.ui['knobs'][id]['buffer']
-      const url = '/knobs/' + id + '/set/' + value
-      get(url)
-    }
-    deselectAll()
-  }
-
   function refreshChecked() {
     for (var i in props.checked) {
       const id = props.checked[i]
@@ -85,8 +64,8 @@ function DataTable(props) {
         <Table>
         <colgroup>
          <col style={{width:'10%'}}/>
-         <col style={{width:'20%'}}/>
-         <col style={{width:'40%'}}/>
+         <col style={{width:'30%'}}/>
+         <col style={{width:'30%'}}/>
          <col style={{width:'25%'}}/>
          <col style={{width:'5%'}}/>
 
@@ -103,14 +82,8 @@ function DataTable(props) {
             </TableCell>
             <TableCell align="right" padding="default">
               <div className="row">
-              <IconButton aria-label="update" onClick={send} color="primary">
-                <SendIcon />
-              </IconButton>
               <IconButton aria-label="refresh" onClick={refreshChecked} color="primary">
                 <CachedIcon />
-              </IconButton>
-              <IconButton aria-label="more-vert" color="primary">
-                <MoreVertIcon />
               </IconButton>
               </div>
             </TableCell>
