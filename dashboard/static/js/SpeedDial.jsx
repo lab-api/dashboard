@@ -5,6 +5,7 @@ import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon';
 import SpeedDialAction from '@material-ui/lab/SpeedDialAction';
 import SpeedIcon from '@material-ui/icons/Speed';
 import BarChartIcon from '@material-ui/icons/BarChart';
+import TimelineIcon from '@material-ui/icons/Timeline';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -23,6 +24,7 @@ const useStyles = makeStyles(theme => ({
 const actions = [
   { icon: <SpeedIcon />, name: 'Optimize'},
   { icon: <BarChartIcon />, name: 'Results'},
+  { icon: <TimelineIcon />, name: 'Monitor'}
 
 ];
 
@@ -38,8 +40,8 @@ export default function SpeedDialTooltipOpen(props) {
     if (name == 'Optimize') {
       props.setOpenDrawer('Optimize')
     }
-    else if (name == 'Results') {
-      props.setOpenDrawer('Results')
+    else if (name == 'Monitor') {
+      props.setOpenDrawer('Monitor')
     }
     setOpen(false);
 

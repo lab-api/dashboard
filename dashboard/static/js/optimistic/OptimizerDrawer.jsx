@@ -1,7 +1,6 @@
 import React from 'react'
-import ParameterCard from "./ParameterCard.jsx"
 import OptimizerCard from "./OptimizerCard.jsx"
-import Submitter from "./Submitter.jsx"
+import ResultsCard from "./ResultsCard.jsx"
 import Typography from '@material-ui/core/Typography';
 import { connect } from 'react-redux'
 import Tabs from '@material-ui/core/Tabs';
@@ -45,7 +44,7 @@ const ThemeTab = withStyles(theme => ({
 }))(props => <Tab {...props} />);
 
 function OptimizerDrawer(props) {
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = React.useState(0)
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -72,19 +71,19 @@ function OptimizerDrawer(props) {
         textColor="primary"
         aria-label="scrollable force tabs example"
       >
-        <ThemeTab label="Targets"  {...a11yProps(0)}  />
-        <ThemeTab label="Optimizer"  {...a11yProps(1)}  />
+        <ThemeTab label="Optimization"  {...a11yProps(0)}  />
+        <ThemeTab label="Results"  {...a11yProps(1)}  />
+
       </Tabs>
 
       <TabPanel value={value} index={0}>
-        <ParameterCard/>
-      </TabPanel>
-
-      <TabPanel value={value} index={1}>
         <OptimizerCard/>
       </TabPanel>
 
-      <Submitter setSnackbarName={props.setSnackbarName} setSnackbarOpen={props.setSnackbarOpen}/>
+      <TabPanel value={value} index={1}>
+        <ResultsCard width={props.drawerWidth}/>
+      </TabPanel>
+
     </div>
     </Drawer>
   )

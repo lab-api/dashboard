@@ -29,6 +29,15 @@ def list_algorithm_parameters(algorithm):
         d[p.name] = p.value
     return json.dumps(d)
 
+def get_next_id(base_id):
+    results = current_app.config['results']
+    idx = 1
+    while True:
+        id = base_id + f' ({idx})'
+        if id not in results:
+            return id
+        idx += 1
+
 @optimization.route('/submit', methods=['POST'])
 def submit_run():
     ''' Takes a dictionary of the following field structure (example)
@@ -62,8 +71,8 @@ def submit_run():
     data = {}
     for col in algo.dataset.columns:
         data[col] = list(algo.dataset[col].values)
-
-    current_app.config['results'][str(len(current_app.config['results']))] = algo.dataset
+    id = get_next_id(submission['algorithm'] + ' - ' + current_app.config['state']['measurements'][submission['objective']]['name'])
+    current_app.config['results'][id] = algo.dataset
     return json.dumps(data)
 
 @optimization.route('/results')
@@ -73,6 +82,8 @@ def list_results():
 @optimization.route('/results/<id>')
 def retrieve_results(id):
     data = {}
+    if id == 'latest':
+        id = list(current_app.config['results'].keys())[-1]
     dataset = current_app.config['results'][id]
     columns = [{'width': 250, 'label': x, 'dataKey': x} for x in dataset.columns]
     records = dataset.to_json(orient='records')

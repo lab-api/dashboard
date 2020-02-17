@@ -49,7 +49,6 @@ function DataTable(props) {
       setExpanded([])
     }
   }
-
   const topLevelInstruments = []
   for (var id in props.instruments) {
     if (props.instruments[id]['parent'] == null) {
@@ -88,7 +87,7 @@ function DataTable(props) {
             </TableCell>
             <TableCell align='right' padding='default'>
               <IconButton aria-label="update" onClick={toggleExpandAll} color="primary">
-                {expanded.length<props.instruments.length? (<ExpandMoreIcon/>): <ExpandLessIcon/>}
+                {expanded.length<Object.keys(props.instruments).length? (<ExpandMoreIcon/>): <ExpandLessIcon/>}
               </IconButton>
             </TableCell>
           </TableRow>

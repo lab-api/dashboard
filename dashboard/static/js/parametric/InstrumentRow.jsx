@@ -19,7 +19,8 @@ import { connect } from 'react-redux'
 import * as actions from '../reducers/actions.js'
 
 function InstrumentRow(props) {
-  const handleExpandClick = () => {
+  const handleExpandClick = (event) => {
+    event.stopPropagation()
     if (props.expanded.includes(props.instrumentID))
     {
       props.setExpanded(props.expanded.filter(name => name != props.instrumentID))
@@ -48,6 +49,7 @@ function InstrumentRow(props) {
   const isChecked = checkedInInstrument.length == allKnobs.length
 
   const handleSelectAllClick = event => {
+    event.stopPropagation()
     if (event.target.checked) {
       selectAll()
       return;
@@ -65,7 +67,7 @@ function InstrumentRow(props) {
 
   return (
     <React.Fragment>
-    <TableRow key={props.instrumentID} style={{background: props.backgroundColor}} hover>
+    <TableRow key={props.instrumentID} style={{background: props.backgroundColor}} onClick={(event)=>handleExpandClick(event)} hover>
       <TableCell padding="checkbox">
         <Checkbox indeterminate={isIndeterminate}
                   checked={isChecked}
@@ -77,7 +79,7 @@ function InstrumentRow(props) {
       <TableCell>
       </TableCell>
       <TableCell align='right' padding='default'>
-        <IconButton aria-label="show more" edge='start' size='small' onClick={()=>handleExpandClick(props.instrumentID)}>
+        <IconButton aria-label="show more" edge='start' size='small' onClick={(event)=>handleExpandClick(event)}>
           {props.expanded.includes(props.instrumentID)? (<ExpandLessIcon />): <ExpandMoreIcon />}
         </IconButton>
       </TableCell>

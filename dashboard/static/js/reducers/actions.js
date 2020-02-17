@@ -15,3 +15,6 @@ export {knobs}
 
 import * as selectors from '../features/selectors.js'
 export {selectors}
+
+import * as observers from '../features/observers.js'
+export {observers}

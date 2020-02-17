@@ -38,14 +38,13 @@ function Submitter(props) {
     draft['bounds'] = bounds
   })
   function submit() {
-      post('/optimistic/submit', submission, (data)=>{displayResult(data, props.optimization.algorithm)})
+      const objective = props.measurements[props.optimization.objective].name
+      post('/optimistic/submit', submission, (data)=>{displayResult(data, props.optimization.algorithm, objective)})
     }
 
-
-  function displayResult(data, algorithm) {
-    props.setSnackbarOpen(true)
-    props.setSnackbarName(algorithm)
-    console.log(data)
+  function displayResult(data, algorithm, objective) {
+    const text = algorithm + ' optimization of ' + objective + ' complete!'
+    props.dispatch(actions.alert.show(text, 'success'))
   }
 
   return (
@@ -62,6 +61,7 @@ function Submitter(props) {
 function mapStateToProps(state){
   return {checked: state['checked'],
           ui: state['ui'],
-          optimization: state['ui']['optimization']}
+          optimization: state['ui']['optimization'],
+          measurements: state['measurements']}
 }
 export default connect(mapStateToProps)(Submitter)

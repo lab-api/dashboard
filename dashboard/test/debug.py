@@ -2,6 +2,7 @@
 from dashboard import API
 from parametric import Instrument
 from parametric.factory import Knob, Switch, Measurement, Selector
+import numpy as np
 
 class TAPro(Instrument):
     def __init__(self, name='TA Pro'):
@@ -41,15 +42,21 @@ class PMT(Instrument):
     def __init__(self, name='PMT'):
         super().__init__(name=name)
         self.voltage = Knob('voltage', 0.7, bounds=(0, 1))
-        self.fluorescence = Measurement('fluorescence', self.measure_fluorescence)
+        self.fluorescence = Measurement('fluorescence', self.measure_fluorescence, bounds=(3, 6))
 
     def measure_fluorescence(self):
-        return 10**self.voltage
+        return (10**self.voltage) * (1+np.random.normal(0, 0.01))
 
 inst = TAPro(name='Laser')
 inst2 = Coils()
 green = GreenController()
 pmt = PMT()
+
+# from vigilant import Monitor
+# m = Monitor()
+# m.name = 'monitor'
+# m.watch(pmt.fluorescence, threshold=pmt.fluorescence.bounds)
+# m.start(period=1)
 
 api = API(globals(), debug=True, port=8000)
 api.serve()

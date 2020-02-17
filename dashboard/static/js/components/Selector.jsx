@@ -20,7 +20,6 @@ import { isEqual } from 'lodash'
 export default function Selector({source, callback=null, label='', refresh=true}) {
   const [choices, setChoices] = React.useState([])
   const [currentChoice, setCurrentChoice] = React.useState('')
-
   function getChoices() {
     // Query the source function if refresh==true or return already-populated
     // choices if refresh==false. Always refreshes if choices is empty.

@@ -6,9 +6,8 @@ import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import SpeedDial from './SpeedDial.jsx'
 import OptimizerDrawer from './optimistic/OptimizerDrawer.jsx'
-import ResultsDrawer from './optimistic/ResultsDrawer.jsx'
-import ResultSnackbar from './optimistic/ResultSnackbar.jsx'
 import AlertSnackbar from './AlertSnackbar.jsx'
+import MonitorPanel from './vigilant/MonitorPanel.jsx'
 import { get } from './utilities.js'
 import * as actions from './reducers/actions.js'
 
@@ -20,11 +19,14 @@ const theme = createMuiTheme({
 });
 
 const drawerWidth = 500
-const monitorWidth = 500
+const monitorWidth = 0
 const useStyles = makeStyles(theme => ({
   content: {
     padding: theme.spacing(3),
     marginRight: drawerWidth + monitorWidth
+  },
+  monitor: {
+    width: monitorWidth
   },
   drawer: {
     width: drawerWidth,
@@ -39,32 +41,20 @@ const useStyles = makeStyles(theme => ({
 export default function App(props){
   const classes = useStyles();
   const [openDrawer, setOpenDrawer] = React.useState('')
-  const [snackbarName, setSnackbarName] = React.useState('')
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
-
-  const [data, setData] = React.useState([])
-  const [columns, setColumns] = React.useState([])
-  const [id, setId] = React.useState('')
 
   props.socket.on('parameter', (data) => {
     props.dispatch(actions.knobs.update(data.id, data.value))
     props.dispatch(actions.ui.patch('knobs', data.id, 'display', ''))
   })
 
+  props.socket.on('monitor', (data) => {
+    for (var observerId in data.values) {
+      props.dispatch(actions.observers.update(observerId, data.values[observerId]))
+    }
+  })
+
   function closeDrawers() {
     setOpenDrawer('')
-    setData([])
-    setColumns([])
-  }
-
-
-  function loadDataset() {
-    const url = '/optimistic/results/'.concat(id)
-    get(url, (dataset) => {
-      setData(JSON.parse(dataset['records']))
-      setColumns(dataset['columns'])
-    })
-    setOpenDrawer('Results')
   }
 
   return (
@@ -75,15 +65,15 @@ export default function App(props){
       className={classes.content}
     >
     <DataTable/>
-
-
-    <OptimizerDrawer open={openDrawer=='Optimize'} classes={classes} setSnackbarName={setSnackbarName} setSnackbarOpen={setSnackbarOpen} />
-    <ResultsDrawer open={openDrawer=='Results'} classes={classes} width={drawerWidth} setId={setId} data={data} setData={setData} columns={columns} setColumns={setColumns} loadDataset={loadDataset} />
+    <MonitorPanel open={openDrawer=='Monitor'} classes={classes}/>
+    <OptimizerDrawer open={openDrawer=='Optimize'}
+                     classes={classes}
+                     width={drawerWidth}
+                     />
 
     </main>
     <SpeedDial setOpenDrawer={setOpenDrawer}/>
     <AlertSnackbar/>
-    <ResultSnackbar name={snackbarName} setName={setSnackbarName} open={snackbarOpen} setOpen={setSnackbarOpen} loadDataset={loadDataset}/>
     </ThemeProvider>
     </div>
 

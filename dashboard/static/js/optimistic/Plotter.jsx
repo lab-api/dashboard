@@ -17,11 +17,10 @@ const useStyles = makeStyles(theme => ({
 export default function Plotter(props) {
     const classes = useStyles()
     // convert data to format
-    const [x, setX] = React.useState([])
-    const [y, setY] = React.useState([])
-    const [xlabel, setXlabel] = React.useState('')
-    const [ylabel, setYlabel] = React.useState('')
-
+    let xlabel = ''
+    let ylabel = ''
+    let x = []
+    let y = []
     function getModalStyle() {
       return {
         top: '50%',
@@ -30,32 +29,22 @@ export default function Plotter(props) {
       };
     }
 
-    function prepareData() {
-      if (props.columns.length > 0) {
-        const xlabel = props.columns[0].label
-        const ylabel = props.columns[1].label
-        const x0 = []
-        const y0 = []
+    if (props.columns.length > 0) {
+      xlabel = props.columns[0].label
+      ylabel = props.columns[1].label
 
-        for (var i in props.data) {
-          x.push(props.data[i][xlabel])
-          y.push(props.data[i][ylabel])
-        }
-
-        setX(x)
-        setY(y)
-        setXlabel(xlabel)
-        setYlabel(ylabel)
+      for (var i in props.data) {
+        x.push(props.data[i][xlabel])
+        y.push(props.data[i][ylabel])
       }
     }
 
-    React.useEffect(prepareData)
     const [modalStyle] = React.useState(getModalStyle);
 
     function eraseData() {
+      x = []
+      y = []
       props.setOpen(false)
-      setX([])
-      setY([])
     }
 
     return (

@@ -4,11 +4,13 @@ import json
 import importlib, inspect
 from parametric import Parameter, Instrument
 from parametric.factory import Knob, Switch, Measurement, Selector
+from vigilant import Monitor
 import attr
 from threading import Thread
 from optimistic.algorithms import *
 from flask_socketio import SocketIO
 from functools import partial
+import uuid
 
 class API:
     def __init__(self, namespace, addr='127.0.0.1', port=8000, debug=False):
@@ -16,6 +18,7 @@ class API:
         self.port = port
         self.namespace = namespace
         self.debug = debug
+        self.connected = False
 
     def get(self, endpoint):
         if endpoint[0] == '/':
@@ -59,7 +62,11 @@ class API:
 
     def serve(self):
         app = Flask(__name__)
-        socketio = SocketIO(app)
+        socketio = SocketIO(app, async_mode="threading")
+
+        @socketio.on("connect")
+        def connect():
+            self.connected = True
 
         def emit_parameter_update(id, value):
             socketio.emit('parameter', {'id': id,
@@ -141,9 +148,41 @@ class API:
                                       return_handle = return_handle)
             return state
 
+
+
+        def find_monitors(state):
+            def callback(entry, value):
+                if not self.connected:
+                    print('waiting for connection')
+                    return
+                id = entry['id']
+                update = {}
+                for col in value:
+                    col_id = entry['observers'][col]
+                    update[col_id] = value[col].iloc[0]
+                socketio.emit('monitor', {'id': id, 'values': update})
+
+            state['monitors'] = {}
+            state['observers'] = {}
+            for monitor in self.search(Monitor, self.namespace, return_dict=True).values():
+                monitor_entry = {'name': monitor.name, 'observers': {}, 'id': str(uuid.uuid4())}
+                for name, observer in monitor.observers.items():
+                    id = str(uuid.uuid4())
+                    monitor_entry['observers'][name] = id
+                    state['observers'][id] = {'name': name,
+                                              'value': '',
+                                              'data': [],
+                                              'bounds': observer.threshold}
+                state['monitors'][monitor_entry['id']] = monitor_entry
+                monitor.callbacks.append(partial(callback, monitor_entry))
+
+            return state
+
         @app.route("/")
         def hello():
             frontend_state = prepare_state()
+            frontend_state = find_monitors(frontend_state)
+
             self.state = prepare_state(return_handle=True)
             app.config['state'] = self.state
             app.config['results'] = {}
