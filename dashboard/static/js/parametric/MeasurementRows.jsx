@@ -7,7 +7,9 @@ import * as actions from '../reducers/actions.js'
 import Checkbox from "@material-ui/core/Checkbox";
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import IconButton from '@material-ui/core/IconButton';
-import { get } from '../utilities.js'
+import { get, post } from '../utilities.js'
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 function MeasurementRows(props) {
   const [buttonsVisible, setButtonsVisible] = React.useState('')
@@ -21,6 +23,32 @@ function MeasurementRows(props) {
       props.dispatch(actions.ui.optimization.put('objective', ''))
 
     }
+  }
+
+  function toggle_watch(event, id) {
+    event.stopPropagation()
+    if (id in props.observers) {
+      unwatch(id)
+    }
+    else {
+      watch(id)
+    }
+  }
+
+  function watch(id) {
+    post('/monitor/watch', {'id': id}, (entry) => {
+      if (typeof(entry) == 'string') {
+        entry = JSON.parse(entry)
+      }
+      props.dispatch(actions.observers.add(entry['id'], entry))
+    })
+  }
+
+  function unwatch(id) {
+    post('/monitor/unwatch', {'id': id}, () => {
+      props.dispatch(actions.observers.remove(id))
+    })
+
   }
 
   function measureResult(event, id) {
@@ -52,9 +80,14 @@ function MeasurementRows(props) {
         </TableCell>
         <TableCell align="left" padding="checkbox">
           {buttonsVisible == id? (
-          <IconButton aria-label="refresh"  onClick={(event)=>measureResult(event, id)}>
-            <PlayArrowIcon />
-          </IconButton>
+          <div className='row'>
+            <IconButton aria-label="refresh"  onClick={(event)=>measureResult(event, id)}>
+              <PlayArrowIcon />
+            </IconButton>
+            <IconButton aria-label="watch" onClick={(event) => toggle_watch(event, id)}>
+              {id in props.observers? <VisibilityIcon />: <VisibilityOffIcon/>}
+            </IconButton>
+          </div>
         ): null
         }
         </TableCell>
@@ -69,7 +102,8 @@ function mapStateToProps(state, ownProps){
   return {checked: state['checked'],
           measurements: state['measurements'],
           instruments: state['instruments'],
-          optimization: state['ui']['optimization']
+          optimization: state['ui']['optimization'],
+          observers: state['observers']
         }
 }
 

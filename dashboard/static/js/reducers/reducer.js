@@ -6,11 +6,10 @@ import alert from '../features/alert.js'
 import knobs from '../features/knobs.js'
 import selectors from '../features/selectors.js'
 import ui from '../features/ui.js'
-import monitors from '../features/monitors.js'
 import observers from '../features/observers.js'
 
 import { combineReducers } from 'redux'
 
-const reducer = combineReducers({ui, alert, checked, switches, selectors, observers, monitors, instruments, measurements, knobs})
+const reducer = combineReducers({ui, alert, checked, switches, selectors, observers, instruments, measurements, knobs})
 
 export default reducer

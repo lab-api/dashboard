@@ -52,11 +52,7 @@ inst2 = Coils()
 green = GreenController()
 pmt = PMT()
 
-# from vigilant import Monitor
-# m = Monitor()
-# m.name = 'monitor'
-# m.watch(pmt.fluorescence, threshold=pmt.fluorescence.bounds)
-# m.start(period=1)
 
 api = API(globals(), debug=True, port=8000)
+api.monitor.watch(pmt.fluorescence, threshold=pmt.fluorescence.bounds)
 api.serve()

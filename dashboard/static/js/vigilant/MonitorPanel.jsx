@@ -8,43 +8,29 @@ import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import Typography from "@material-ui/core/Typography";
 import Drawer from "@material-ui/core/Drawer";
+import StopIcon from '@material-ui/icons/Stop';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import {connect} from 'react-redux'
 import { Sparklines, SparklinesLine, SparklinesReferenceLine } from 'react-sparklines';
 import * as actions from '../reducers/actions.js'
+import IconButton from '@material-ui/core/IconButton';
+import {post} from '../utilities.js'
 
 function MonitorPanel(props) {
-  const monitorId = Object.keys(props.monitors)[0]
-  if (monitorId==undefined) {
-    return (
-      <Drawer elevation={24}
-              variant="persistent"
-              anchor="right"
-              open={props.open}
-              className={props.classes.drawer}
-              classes={{
-                paper: props.classes.drawerPaper,
-              }}
-      >
-        <Paper>
-          <Typography> No monitors detected. </Typography>
-        </Paper>
-      </Drawer>
-    )
-  }
-  const observerIds = []
-  for (var name in props.monitors[monitorId].observers) {
-    observerIds.push(props.monitors[monitorId].observers[name])
-  }
 
   // raise alert if any observers are out of bounds
-  for (var i in observerIds) {
-    const id = observerIds[i]
-    if (props.observers[id].bounds[0] > parseFloat(props.observers[id].value)) {
-      props.dispatch(actions.alert.show('Monitored variable ' + props.observers[id].name + ' is below threshold!', 'error'))
+  for (var id in props.observers) {
+    if (props.observers[id].bounds[0] != null) {
+      if (props.observers[id].bounds[0] > parseFloat(props.observers[id].value)) {
+        props.dispatch(actions.alert.show('Monitored variable ' + props.observers[id].name + ' is below threshold!', 'error'))
+      }
     }
-    else if (props.observers[id].bounds[1] < parseFloat(props.observers[id].value)) {
-      props.dispatch(actions.alert.show('Monitored variable ' + props.observers[id].name + ' is above threshold!', 'error'))
+    if (props.observers[id].bounds[1] != null) {
+      if (props.observers[id].bounds[1] < parseFloat(props.observers[id].value)) {
+        props.dispatch(actions.alert.show('Monitored variable ' + props.observers[id].name + ' is above threshold!', 'error'))
+      }
     }
+
   }
 
   const sparklineHeight = 20
@@ -63,6 +49,12 @@ function MonitorPanel(props) {
             }}
     >
       <div>
+      <IconButton onClick={()=>post('/monitor/status', {'operation': 'stop'})} >
+        <StopIcon/>
+      </IconButton>
+      <IconButton onClick={()=>post('/monitor/status', {'operation': 'start'})} >
+        <PlayArrowIcon/>
+      </IconButton>
       <Paper>
       <TableContainer>
         <Table>
@@ -85,9 +77,15 @@ function MonitorPanel(props) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {observerIds.map((i) => {
-            const min = props.observers[i].bounds[0]
-            const max = props.observers[i].bounds[1]
+          {Object.keys(props.observers).map((i) => {
+            let min = props.observers[i].bounds[0]
+            if (!isFinite(min)) {
+              min = Math.min(...props.observers[i].data)
+            }
+            let max = props.observers[i].bounds[1]
+            if (!isFinite(max)) {
+              max = Math.max(...props.observers[i].data)
+            }
             return (
               <TableRow key={i}>
                 <TableCell/>
@@ -103,13 +101,13 @@ function MonitorPanel(props) {
                               margin = {0}
                               >
                     <SparklinesLine style={{ fill: "none", stroke: "#004e67"}} margin={0}/>
-                    <SparklinesReferenceLine style={{stroke: "#67001a", strokeWidth:0.5, strokeOpacity: .75, strokeDasharray: '2, 2'}}
+                    <SparklinesReferenceLine style={{stroke: "#67001a", strokeWidth:0.5, strokeOpacity: min == null? 0: 0.75, strokeDasharray: '2, 2'}}
                                              type='custom'
-                                             value={scaleReferenceLine(min, min, max)}
+                                             value={scaleReferenceLine(min != null? min: 0, min != null? min: 0, max != null? max: 1)}
                                              margin={0} />
-                    <SparklinesReferenceLine style={{stroke: "#67001a", strokeWidth: 0.5, strokeOpacity: .75, strokeDasharray: '2, 2'}}
+                    <SparklinesReferenceLine style={{stroke: "#67001a", strokeWidth: 0.5, strokeOpacity: max == null? 0: 0.75, strokeDasharray: '2, 2'}}
                                              type='custom'
-                                             value={scaleReferenceLine(max, min, max)}
+                                             value={scaleReferenceLine(max != null? max: 0, min != null? min: 0, max != null? max: 1)}
                                              margin={0} />
                   </Sparklines>
 
@@ -130,7 +128,6 @@ function MonitorPanel(props) {
 }
 
 function mapStateToProps(state, ownProps){
-  return {monitors: state['monitors'],
-          observers: state['observers']}
+  return {observers: state['observers']}
 }
 export default connect(mapStateToProps)(MonitorPanel)

@@ -20,6 +20,9 @@ class API:
         self.debug = debug
         self.connected = False
 
+        self.monitor = Monitor(period=1)
+
+
     def get(self, endpoint):
         if endpoint[0] == '/':
             endpoint = endpoint[1:]
@@ -37,6 +40,10 @@ class API:
         response = requests.post(f'http://{self.addr}:{self.port}/{endpoint}', json=payload)
         return json.loads(response.text)
 
+    def watch(self, measurement):
+        ''' Add a measurement to the monitor '''
+        self.monitor.watch(measurement, threshold=measurement.bounds)
+        
     @staticmethod
     def search(type_, namespace, return_dict=False, name=None):
         ''' Returns all instances of a passed type in the dictionary. If no namespace is passed, search in globals(). '''
@@ -110,6 +117,7 @@ class API:
                     entry = {'name': child.name, 'instrument': parent_id}
                     if return_handle:
                         entry['handle'] = child
+                        child.id = id
                     state['measurements'][id] = entry
                     state['instruments'][parent_id]['measurements'].append(id)
 
@@ -148,35 +156,30 @@ class API:
                                       return_handle = return_handle)
             return state
 
-
-
         def find_monitors(state):
-            def callback(entry, value):
+            def callback(value):
                 if not self.connected:
                     print('waiting for connection')
                     return
-                id = entry['id']
                 update = {}
-                for col in value:
-                    col_id = entry['observers'][col]
-                    update[col_id] = value[col].iloc[0]
-                socketio.emit('monitor', {'id': id, 'values': update})
+                for name in value:
+                    id = self.monitor.observers[name].id
+                    update[id] = value[name].iloc[0]
+                socketio.emit('monitor', {'id': 'dashboard-monitor', 'values': update})
 
-            state['monitors'] = {}
             state['observers'] = {}
-            for monitor in self.search(Monitor, self.namespace, return_dict=True).values():
-                monitor_entry = {'name': monitor.name, 'observers': {}, 'id': str(uuid.uuid4())}
-                for name, observer in monitor.observers.items():
-                    id = str(uuid.uuid4())
-                    monitor_entry['observers'][name] = id
-                    state['observers'][id] = {'name': name,
-                                              'value': '',
-                                              'data': [],
-                                              'bounds': observer.threshold}
-                state['monitors'][monitor_entry['id']] = monitor_entry
-                monitor.callbacks.append(partial(callback, monitor_entry))
+
+            ## for now, don't rebuild state
+            for name, observer in self.monitor.observers.items():
+                state['observers'][observer.id] = {'name': name,
+                                                   'value': '',
+                                                   'data': [],
+                                                   'bounds': observer.threshold
+                                                   }
+            self.monitor.callbacks['dashboard'] = callback
 
             return state
+
 
         @app.route("/")
         def hello():
@@ -184,16 +187,32 @@ class API:
             frontend_state = find_monitors(frontend_state)
 
             self.state = prepare_state(return_handle=True)
+            self.state['observers'] = frontend_state['observers']
+
             app.config['state'] = self.state
             app.config['results'] = {}
+            app.config['monitor'] = self.monitor
             return render_template('index.html', state=frontend_state)
 
-        ''' Optimistic endpoints '''
+        # @app.route("/monitor/watch", methods=['POST'])
+        # def watch():
+        #     monitor = current_app.config['monitor']
+        #     state = current_app.config['state']
+        #     id = request.json['id']
+        #     measurement = state['measurements'][id]
+        #     monitor.watch(measurement)
+
+
+        ''' Parametric endpoints '''
         from .parameters import parameters
         app.register_blueprint(parameters, url_prefix='/')
 
         ''' Optimistic endpoints '''
         from .optimization import optimization
         app.register_blueprint(optimization, url_prefix='/optimistic')
+
+        ''' Vigilant endpoints '''
+        from .monitoring import monitoring
+        app.register_blueprint(monitoring, url_prefix='/monitor')
 
         socketio.run(app, host=self.addr, port=self.port, debug=self.debug)
