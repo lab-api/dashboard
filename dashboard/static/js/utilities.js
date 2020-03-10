@@ -13,7 +13,9 @@ export function get (url, callback) {
 
 export function post(url, payload={}, callback=(response)=>null) {
   console.log('POST', url, payload)
-  axios.post(url, payload).then((response)=> {
-    callback(response.data)
-  })
+  const resp = axios.post(url, payload)
+
+  if (typeof(callback) != 'undefined') {
+    resp.then((response) => callback(response.data))
+  }
 }
