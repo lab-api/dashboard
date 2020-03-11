@@ -4,10 +4,8 @@ import ButtonAppBar from './TopBar.jsx'
 import DataTable from './parametric/DataTable.jsx'
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import SpeedDial from './SpeedDial.jsx'
 import OptimizerDrawer from './optimistic/OptimizerDrawer.jsx'
 import AlertSnackbar from './AlertSnackbar.jsx'
-import MonitorPanel from './vigilant/MonitorPanel.jsx'
 import { get } from './utilities.js'
 import * as actions from './reducers/actions.js'
 
@@ -47,12 +45,6 @@ export default function App(props){
     props.dispatch(actions.ui.patch('knobs', data.id, 'display', ''))
   })
 
-  props.socket.on('monitor', (data) => {
-    for (var observerId in data.values) {
-      props.dispatch(actions.observers.update(observerId, data.values[observerId]))
-    }
-  })
-
   function closeDrawers() {
     setOpenDrawer('')
   }
@@ -60,19 +52,18 @@ export default function App(props){
   return (
     <div>
     <ThemeProvider theme={theme}>
-    <ButtonAppBar drawerOpen={openDrawer != ''} closeDrawers={closeDrawers} />
+    <ButtonAppBar drawerOpen={openDrawer != ''} closeDrawers={closeDrawers}
+                  setOpenDrawer={setOpenDrawer}/>
     <main
       className={classes.content}
     >
     <DataTable/>
-    <MonitorPanel open={openDrawer=='Monitor'} classes={classes}/>
     <OptimizerDrawer open={openDrawer=='Optimize'}
                      classes={classes}
                      width={drawerWidth}
                      />
 
     </main>
-    <SpeedDial setOpenDrawer={setOpenDrawer}/>
     <AlertSnackbar/>
     </ThemeProvider>
     </div>

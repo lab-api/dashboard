@@ -4,33 +4,16 @@ export default function reducer(state={}, action) {
   switch(action.type) {
     default : return state;
 
-    case 'observers/update':
-      const value = parseFloat(action.value).toPrecision(8).toString()
-      return produce(state, draft => {
-        draft[action.id].value = value
-        draft[action.id].data = draft[action.id].data.concat(value).slice(-20)
-      })
-
     case 'observers/add':
-      return produce(state, draft => {
-        draft[action.id] = action.dict
-      })
+      return state.concat(action.id)
 
     case 'observers/remove':
-      return produce(state, draft => {
-        delete draft[action.id]
-      })
-
-
+      return state.filter(value => action.id != value)
     }
 }
 
-export function update(id, value) {
-  return {type: 'observers/update', id: id, value: value}
-}
-
-export function add(id, dict) {
-  return {type: 'observers/add', id: id, dict: dict}
+export function add(id) {
+  return {type: 'observers/add', id: id}
 }
 
 export function remove(id) {

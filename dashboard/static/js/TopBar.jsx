@@ -8,6 +8,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import OptimizerDrawer from './optimistic/OptimizerDrawer.jsx'
 import MenuOpenIcon from '@material-ui/icons/MenuOpen';
 import ClearIcon from '@material-ui/icons/Clear';
+import SpeedIcon from '@material-ui/icons/Speed';
+import TimelineIcon from '@material-ui/icons/Timeline';
 
 export default function ButtonAppBar(props) {
   const useStyles = makeStyles(theme => ({
@@ -30,6 +32,18 @@ export default function ButtonAppBar(props) {
           <Typography variant="h6" style={{ flex: 1 }}>
             LabAPI
           </Typography>
+          <IconButton className = {classes.button} edge="start"
+                      onClick = {() => props.setOpenDrawer('Optimize')}
+                      color="inherit"
+          >
+            <SpeedIcon/>
+          </IconButton>
+          <IconButton className = {classes.button} edge="start"
+                      target="_blank" href="http://localhost:3000/d/vigilant-dashboard"
+                      color="inherit"
+          >
+            <TimelineIcon/>
+          </IconButton>
           {props.drawerOpen?
           <IconButton className={classes.button} edge="start"
                       aria-label="open-drawer"

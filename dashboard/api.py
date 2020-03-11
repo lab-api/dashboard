@@ -13,15 +13,15 @@ from functools import partial
 import uuid
 
 class API:
-    def __init__(self, namespace, addr='127.0.0.1', port=8000, debug=False):
+    def __init__(self, namespace, addr='127.0.0.1', port=8000, debug=False, measurement='test'):
         self.addr = addr
         self.port = port
         self.namespace = namespace
         self.debug = debug
         self.connected = False
 
-        self.monitor = Monitor(period=1)
-
+        self.monitor = Monitor(period=1, dashboard='Dashboard', measurement=measurement)
+        self.monitor.start()
 
     def get(self, endpoint):
         if endpoint[0] == '/':
@@ -40,10 +40,6 @@ class API:
         response = requests.post(f'http://{self.addr}:{self.port}/{endpoint}', json=payload)
         return json.loads(response.text)
 
-    def watch(self, measurement):
-        ''' Add a measurement to the monitor '''
-        self.monitor.watch(measurement, threshold=measurement.bounds)
-        
     @staticmethod
     def search(type_, namespace, return_dict=False, name=None):
         ''' Returns all instances of a passed type in the dictionary. If no namespace is passed, search in globals(). '''
@@ -79,7 +75,7 @@ class API:
             socketio.emit('parameter', {'id': id,
                                         'value': value})
 
-        def prepare_state(state=None, namespace=None, parent_id=None, return_handle=False):
+        def prepare_state(state=None, namespace=None, parent_id=None, return_handle=False, path=''):
             ''' Recursively search through instruments and prepare a flattened state
                 First pass: look for parameters in the current namespace and add them to the state;
                             then, iterate through all instruments
@@ -91,13 +87,12 @@ class API:
 
             ''' Search parameters within namespace '''
             for child in self.search(Parameter, namespace, return_dict=True).values():
+                entry = {'name': child.name, 'instrument': parent_id, 'path': path + child.name}
                 if isinstance(child, Knob):
                     id = str(len(state['knobs']))
-                    entry = {'name': child.name,
-                             'value': child.get(),
-                             'instrument': parent_id,
-                             'min': child.bounds[0],
-                             'max': child.bounds[1]}
+                    entry['value'] = child.get()
+                    entry['min'] = child.bounds[0]
+                    entry['max'] = child.bounds[1]
                     if return_handle:
                         entry['handle'] = child
                     state['knobs'][id] = entry
@@ -106,7 +101,7 @@ class API:
 
                 elif isinstance(child, Switch):
                     id = str(len(state['switches']))
-                    entry = {'name': child.name, 'value': child.get(), 'instrument': parent_id}
+                    entry['value'] = child.get()
                     if return_handle:
                         entry['handle'] = child
                     state['switches'][id] = entry
@@ -114,7 +109,6 @@ class API:
 
                 elif isinstance(child, Measurement):
                     id = str(len(state['measurements']))
-                    entry = {'name': child.name, 'instrument': parent_id}
                     if return_handle:
                         entry['handle'] = child
                         child.id = id
@@ -123,10 +117,8 @@ class API:
 
                 elif isinstance(child, Selector):
                     id = str(len(state['selectors']))
-                    entry = {'name': child.name,
-                             'value': child.get(),
-                             'instrument': parent_id,
-                             'options': child.options}
+                    entry['value'] = child.get()
+                    entry['options'] = child.options
                     if return_handle:
                         entry['handle'] = child
                     state['selectors'][id] = entry
@@ -135,6 +127,7 @@ class API:
             ''' Search instruments '''
             for instrument in self.search(Instrument, namespace, return_dict=True).values():
                 instrument_entry = {'name': instrument.name,
+                                    'path': path + instrument.name + '/',
                                     'children': [],
                                     'switches': [],
                                     'selectors': [],
@@ -153,55 +146,39 @@ class API:
                 state = prepare_state(state,
                                       namespace = instrument.__dict__,
                                       parent_id = instrument_id,
-                                      return_handle = return_handle)
+                                      return_handle = return_handle,
+                                      path = instrument_entry['path'])
             return state
 
-        def find_monitors(state):
-            def callback(value):
-                if not self.connected:
-                    print('waiting for connection')
-                    return
-                update = {}
-                for name in value:
-                    id = self.monitor.observers[name].id
-                    update[id] = value[name].iloc[0]
-                socketio.emit('monitor', {'id': 'dashboard-monitor', 'values': update})
+        def get_measurement_id(state, measurement):
+            for id in state['measurements']:
+                if state['measurements'][id]['handle'] is measurement:
+                    return id
 
-            state['observers'] = {}
+        def find_observers(state):
+            observers = []
 
-            ## for now, don't rebuild state
-            for name, observer in self.monitor.observers.items():
-                state['observers'][observer.id] = {'name': name,
-                                                   'value': '',
-                                                   'data': [],
-                                                   'bounds': observer.threshold
-                                                   }
-            self.monitor.callbacks['dashboard'] = callback
+            for category in self.monitor.categories:
+                for name, observer in self.monitor.categories[category].items():
+                    id = get_measurement_id(state, observer._measure)
+                    observers.append(id)
 
-            return state
+            return observers
 
 
         @app.route("/")
         def hello():
             frontend_state = prepare_state()
-            frontend_state = find_monitors(frontend_state)
 
             self.state = prepare_state(return_handle=True)
-            self.state['observers'] = frontend_state['observers']
+            self.state['observers'] = find_observers(self.state)
+
+            frontend_state['observers'] = self.state['observers']
 
             app.config['state'] = self.state
             app.config['results'] = {}
             app.config['monitor'] = self.monitor
             return render_template('index.html', state=frontend_state)
-
-        # @app.route("/monitor/watch", methods=['POST'])
-        # def watch():
-        #     monitor = current_app.config['monitor']
-        #     state = current_app.config['state']
-        #     id = request.json['id']
-        #     measurement = state['measurements'][id]
-        #     monitor.watch(measurement)
-
 
         ''' Parametric endpoints '''
         from .parameters import parameters

@@ -21,18 +21,16 @@ def monitor_watch():
     monitor = current_app.config['monitor']
     state = current_app.config['state']
     id = request.json['id']
-    measurement = state['measurements'][id]['handle']
-    monitor.watch(measurement, threshold=measurement.bounds)
-    monitor.observers[measurement.name].id = id
-    ''' Add observer to state '''
-    state['observers'][id] = {'name': measurement.name,
-                              'value': '',
-                              'data': [],
-                              'bounds': measurement.bounds,
-                              'id': id
-                              }
+    state['observers'].append(id)
 
-    return json.dumps(state['observers'][id])
+    measurement = state['measurements'][id]['handle']
+    path = state['measurements'][id]['path']
+    category = path.split('/')[0]
+    rest = path.split(category+'/')[1]
+
+    monitor.watch(measurement, category=category, threshold=measurement.bounds)
+
+    return id
 
 
 @monitoring.route("/unwatch", methods=['POST'])
@@ -40,6 +38,11 @@ def monitor_unwatch():
     monitor = current_app.config['monitor']
     state = current_app.config['state']
     id = request.json['id']
-    del monitor.observers[state['measurements'][id]['name']]
 
-    return ''
+    state['observers'].remove(id)
+    path = state['measurements'][id]['path']
+    category = path.split('/')[0]
+    rest = path.split(category+'/')[1]
+    del monitor.categories[category][path]
+
+    return id

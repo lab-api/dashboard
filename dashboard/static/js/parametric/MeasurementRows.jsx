@@ -13,7 +13,6 @@ import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 function MeasurementRows(props) {
   const [buttonsVisible, setButtonsVisible] = React.useState('')
-
   const ids = props.instruments[props.instrumentID].measurements
   function selectMeasurement(id) {
     if (props.optimization['objective'] != id) {
@@ -27,7 +26,7 @@ function MeasurementRows(props) {
 
   function toggle_watch(event, id) {
     event.stopPropagation()
-    if (id in props.observers) {
+    if (props.observers.includes(id)) {
       unwatch(id)
     }
     else {
@@ -36,18 +35,13 @@ function MeasurementRows(props) {
   }
 
   function watch(id) {
-    post('/monitor/watch', {'id': id}, (entry) => {
-      if (typeof(entry) == 'string') {
-        entry = JSON.parse(entry)
-      }
-      props.dispatch(actions.observers.add(entry['id'], entry))
-    })
+    post('/monitor/watch', {'id': id})
+    props.dispatch(actions.observers.add(id))
   }
 
   function unwatch(id) {
-    post('/monitor/unwatch', {'id': id}, () => {
-      props.dispatch(actions.observers.remove(id))
-    })
+    post('/monitor/unwatch', {'id': id})
+    props.dispatch(actions.observers.remove(id))
 
   }
 
@@ -85,7 +79,7 @@ function MeasurementRows(props) {
               <PlayArrowIcon />
             </IconButton>
             <IconButton aria-label="watch" onClick={(event) => toggle_watch(event, id)}>
-              {id in props.observers? <VisibilityIcon />: <VisibilityOffIcon/>}
+              {props.observers.includes(id)? <VisibilityIcon />: <VisibilityOffIcon/>}
             </IconButton>
           </div>
         ): null

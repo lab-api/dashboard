@@ -53,6 +53,5 @@ green = GreenController()
 pmt = PMT()
 
 
-api = API(globals(), debug=True, port=8000)
-api.monitor.watch(pmt.fluorescence, threshold=pmt.fluorescence.bounds)
+api = API(globals(), debug=True, port=8000, measurement='test')
 api.serve()
