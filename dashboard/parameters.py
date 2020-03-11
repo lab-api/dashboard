@@ -41,21 +41,42 @@ def measurement(id):
 
 @parameters.route("/measurements/<id>/min", methods=['GET', 'POST'])
 def updateMin(id):
-    measurement = current_app.config['state']['measurements'][id]['handle']
+    state = current_app.config['state']
+    measurement = state['measurements'][id]['handle']
     if request.method == 'POST':
-        measurement.bounds[0] = float(request.json['value'])
+        value = float(request.json['value'])
+        measurement.bounds[0] = value
+
+        # if monitored, update monitor bounds
+        if id in state['observers']:
+            monitor = current_app.config['monitor']
+            path = state['measurements'][id]['path']
+            monitor.dashboard.panels[path].bounds[0] = value
+            monitor.dashboard.download()
+            monitor.dashboard.render()
+            monitor.dashboard.post()
+
         return str(measurement.bounds[0])
     elif request.method == 'GET':
         return str(measurement.bounds[0])
 
 @parameters.route("/measurements/<id>/max", methods=['GET', 'POST'])
 def updateMax(id):
+    state = current_app.config['state']
     measurement = current_app.config['state']['measurements'][id]['handle']
     if request.method == 'POST':
-        measurement.bounds[1] = float(request.json['value'])
+        value = float(request.json['value'])
+        measurement.bounds[1] = value
 
-        observer = current_app.config['monitor'].categories['PMT']['PMT/fluorescence']
-        print(observer.threshold)
+        # if monitored, update monitor bounds
+        if id in state['observers']:
+            monitor = current_app.config['monitor']
+            path = state['measurements'][id]['path']
+            monitor.dashboard.panels[path].bounds[1] = value
+            monitor.dashboard.download()
+            monitor.dashboard.render()
+            monitor.dashboard.post()
+
         return str(measurement.bounds[1])
     elif request.method == 'GET':
         return str(measurement.bounds[1])
