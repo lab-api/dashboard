@@ -109,6 +109,8 @@ class API:
 
                 elif isinstance(child, Measurement):
                     id = str(len(state['measurements']))
+                    entry['min'] = child.bounds[0]
+                    entry['max'] = child.bounds[1]
                     if return_handle:
                         entry['handle'] = child
                         child.id = id

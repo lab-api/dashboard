@@ -18,3 +18,6 @@ export {selectors}
 
 import * as observers from '../features/observers.js'
 export {observers}
+
+import * as measurements from '../features/measurements.js'
+export {measurements}

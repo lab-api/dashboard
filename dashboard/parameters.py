@@ -38,3 +38,24 @@ def knob(id):
 def measurement(id):
     parameter = current_app.config['state']['measurements'][id]['handle']
     return json.dumps(parameter.get())
+
+@parameters.route("/measurements/<id>/min", methods=['GET', 'POST'])
+def updateMin(id):
+    measurement = current_app.config['state']['measurements'][id]['handle']
+    if request.method == 'POST':
+        measurement.bounds[0] = float(request.json['value'])
+        return str(measurement.bounds[0])
+    elif request.method == 'GET':
+        return str(measurement.bounds[0])
+
+@parameters.route("/measurements/<id>/max", methods=['GET', 'POST'])
+def updateMax(id):
+    measurement = current_app.config['state']['measurements'][id]['handle']
+    if request.method == 'POST':
+        measurement.bounds[1] = float(request.json['value'])
+
+        observer = current_app.config['monitor'].categories['PMT']['PMT/fluorescence']
+        print(observer.threshold)
+        return str(measurement.bounds[1])
+    elif request.method == 'GET':
+        return str(measurement.bounds[1])
